@@ -92,16 +92,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
 
         // ============================================================
-        // Convert column names to camelCase to match existing Prisma schema.
-        // Prisma creates camelCase columns (contactId, lastMessageAt, etc.)
-        // but EF Core defaults to PascalCase (ContactId, LastMessageAt).
+        // Match Prisma schema naming conventions:
+        // - Table names: PascalCase singular (Contact, not Contacts)
+        //   EF Core defaults to DbSet name (Contacts), Prisma uses model name (Contact)
+        // - Column names: camelCase (contactId, lastMessageAt)
+        //   EF Core defaults to PascalCase (ContactId, LastMessageAt)
         // PostgreSQL is case-sensitive with quoted identifiers.
         // ============================================================
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
+            // Table name = entity class name (singular PascalCase)
+            entity.SetTableName(entity.ClrType.Name);
+
+            // Column names = camelCase
             foreach (var property in entity.GetProperties())
             {
-                // Use property name directly — convert first char to lowercase
                 var name = property.Name;
                 property.SetColumnName(char.ToLowerInvariant(name[0]) + name[1..]);
             }
