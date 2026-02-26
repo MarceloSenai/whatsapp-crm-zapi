@@ -101,13 +101,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             foreach (var property in entity.GetProperties())
             {
-                var storeObjectId = StoreObjectIdentifier.Table(
-                    entity.GetTableName()!, entity.GetSchema());
-                var columnName = property.GetColumnName(storeObjectId);
-                if (!string.IsNullOrEmpty(columnName) && char.IsUpper(columnName[0]))
-                {
-                    property.SetColumnName(char.ToLowerInvariant(columnName[0]) + columnName[1..]);
-                }
+                // Use property name directly — convert first char to lowercase
+                var name = property.Name;
+                property.SetColumnName(char.ToLowerInvariant(name[0]) + name[1..]);
             }
         }
     }
