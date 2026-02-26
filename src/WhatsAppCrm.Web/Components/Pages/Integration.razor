@@ -1,136 +1,221 @@
 @page "/integration"
 
 <div class="h-full overflow-auto bg-gray-50">
-    <div class="max-w-4xl mx-auto p-8">
+    <div class="max-w-5xl mx-auto p-8">
         @* Header *@
         <div class="mb-2 flex items-center gap-2 text-sm font-medium text-whatsapp">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
-            Guia de Integracao
+            Guia de Integracao para Desenvolvedores
         </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-3">Integracao WhatsApp via Z-API + ERP CodeCycle</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Integracao WhatsApp via Z-API — Guia Tecnico</h1>
         <p class="text-lg text-gray-600 mb-10">
-            Guia completo para os desenvolvedores da CodeCycle integrarem WhatsApp real
-            no ERP Obraxs usando a plataforma Z-API como gateway.
+            Documentacao completa para desenvolvedores plenos. Cobre a API Z-API, arquitetura de webhooks,
+            fluxo de dados, tratamento de erros e o caminho de demo para producao.
         </p>
 
         @* ===== PARTE 1 — Z-API ===== *@
         <div class="rounded-lg bg-[#25d366]/10 p-4 mb-6">
-            <h2 class="text-lg font-bold text-whatsapp">Parte 1 — Z-API na Pratica</h2>
-            <p class="text-sm text-gray-600">O que e a Z-API, como funciona, vantagens sobre a Cloud API oficial.</p>
+            <h2 class="text-lg font-bold text-whatsapp">Parte 1 — Z-API: Conceitos e API</h2>
+            <p class="text-sm text-gray-600">O que e a Z-API, como se autentica, endpoints, webhooks e diferenca da Cloud API oficial.</p>
         </div>
 
         @* O que e Z-API *@
         <h2 class="text-xl font-bold text-gray-900 mb-4">O que e a Z-API?</h2>
         <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
             <p class="text-sm text-gray-600 mb-4">
-                A <strong>Z-API</strong> e uma plataforma brasileira que fornece uma API REST para integrar sistemas
-                com o WhatsApp de forma simples. Usa o mesmo canal do WhatsApp Web, sem precisar de aprovacao da Meta
-                ou verificacao de negocio.
+                A <strong>Z-API</strong> e uma plataforma brasileira que encapsula o protocolo do WhatsApp Web em uma API REST.
+                Diferente da Cloud API oficial da Meta (que exige Business Verification, templates pre-aprovados e cobra por mensagem),
+                a Z-API funciona como um "WhatsApp Web programatico" — conecta via QR code e permite envio/recebimento sem burocracia.
             </p>
-            <div class="grid md:grid-cols-3 gap-3">
+            <div class="grid md:grid-cols-3 gap-3 mb-4">
                 <div class="rounded-lg bg-gray-50 p-3">
-                    <div class="text-sm font-medium text-gray-900">API REST Simples</div>
-                    <div class="text-xs text-gray-500">Endpoints intuitivos: send-text, send-image, send-document. Zero burocracia Meta.</div>
+                    <div class="text-sm font-medium text-gray-900">Autenticacao</div>
+                    <div class="text-xs text-gray-500">Instance ID + Token na URL + Client-Token no header. Sem OAuth.</div>
                 </div>
                 <div class="rounded-lg bg-gray-50 p-3">
-                    <div class="text-sm font-medium text-gray-900">Sem Limites de Mensagem</div>
-                    <div class="text-xs text-gray-500">Nao ha tier de envio. Limite e o do WhatsApp Web normal.</div>
+                    <div class="text-sm font-medium text-gray-900">Sem Templates</div>
+                    <div class="text-xs text-gray-500">Texto livre a qualquer momento. Nao existe janela de 24h nem aprovacao de template.</div>
                 </div>
                 <div class="rounded-lg bg-gray-50 p-3">
                     <div class="text-sm font-medium text-gray-900">Multi-Device</div>
-                    <div class="text-xs text-gray-500">Funciona com multi-device do WhatsApp. Celular nao precisa ficar online.</div>
+                    <div class="text-xs text-gray-500">Celular nao precisa ficar online. Usa o protocolo multi-device do WhatsApp.</div>
                 </div>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-xs text-amber-800"><strong>Atencao:</strong> Por nao ser a API oficial da Meta, a Z-API esta sujeita a mudancas no protocolo do WhatsApp. Para volumes muito altos (&gt;10k msg/dia) ou compliance rigoroso, avalie a Cloud API oficial.</p>
             </div>
         </div>
 
         @* Z-API vs Cloud API *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Z-API vs Cloud API (Meta)</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Z-API vs Cloud API (Meta) — Comparacao Tecnica</h2>
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
             <table class="w-full text-sm">
                 <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Aspecto</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Z-API</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Cloud API (Meta)</th></tr></thead>
                 <tbody>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Setup</td><td class="px-4 py-2 text-green-600">5 minutos (criar conta + QR code)</td><td class="px-4 py-2 text-gray-500">Dias (verificacao de negocio)</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Aprovacao</td><td class="px-4 py-2 text-green-600">Nenhuma</td><td class="px-4 py-2 text-gray-500">Meta Business Verification</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Templates</td><td class="px-4 py-2 text-green-600">Texto livre (sem template)</td><td class="px-4 py-2 text-gray-500">Templates pre-aprovados obrigatorios</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Custo por msg</td><td class="px-4 py-2 text-green-600">Incluso no plano mensal</td><td class="px-4 py-2 text-gray-500">~R$ 0,15-0,50 por mensagem</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Janela 24h</td><td class="px-4 py-2 text-green-600">Nao se aplica</td><td class="px-4 py-2 text-gray-500">Sim (template fora da janela)</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Webhook</td><td class="px-4 py-2">receive + status + disconnect</td><td class="px-4 py-2">messages + message_status</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Setup time</td><td class="px-4 py-2 text-green-600">5 min (QR code)</td><td class="px-4 py-2 text-gray-500">Dias (Business Verification)</td></tr>
                     <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Autenticacao</td><td class="px-4 py-2">Instance ID + Token + Client-Token</td><td class="px-4 py-2">OAuth 2.0 + System User Token</td></tr>
-                    <tr><td class="px-4 py-2 font-medium">Ideal para</td><td class="px-4 py-2">PMEs, MVPs, demos, automacoes</td><td class="px-4 py-2">Grandes volumes, compliance</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Base URL</td><td class="px-4 py-2 font-mono text-xs">api.z-api.io/instances/{"{ID}"}/token/{"{TOKEN}"}/</td><td class="px-4 py-2 font-mono text-xs">graph.facebook.com/v21.0/{"{PHONE_ID}"}/</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Templates</td><td class="px-4 py-2 text-green-600">Texto livre (sem template)</td><td class="px-4 py-2 text-gray-500">Templates pre-aprovados obrigatorios</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Janela 24h</td><td class="px-4 py-2 text-green-600">Nao se aplica</td><td class="px-4 py-2 text-gray-500">Sim (template obrigatorio fora da janela)</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Custo por msg</td><td class="px-4 py-2 text-green-600">Incluso no plano (~R$100/mes)</td><td class="px-4 py-2 text-gray-500">R$ 0,15-0,50 por mensagem</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Webhooks</td><td class="px-4 py-2">receive + status + disconnect</td><td class="px-4 py-2">messages + message_status</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Rate limit</td><td class="px-4 py-2">Limite do WhatsApp Web (~80 msg/min)</td><td class="px-4 py-2">1000 msg/seg (Business tier)</td></tr>
+                    <tr><td class="px-4 py-2 font-medium">Ideal para</td><td class="px-4 py-2">PMEs, MVPs, demos, ate ~5k msg/dia</td><td class="px-4 py-2">Enterprise, alto volume, compliance</td></tr>
                 </tbody>
             </table>
         </div>
 
-        @* Como funciona *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Como Funciona</h2>
+        @* ===== AUTHENTICATION ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Autenticacao Z-API — 3 Credenciais</h2>
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <code class="text-xs bg-[#25d366]/10 text-[#25d366] px-2 py-1 rounded font-bold flex-shrink-0 h-fit">Instance ID</code>
+                    <div><p class="text-sm text-gray-600">Identificador unico da instancia Z-API. Vai na URL base. Cada instancia = 1 numero de WhatsApp conectado.</p></div>
+                </div>
+                <div class="flex gap-4">
+                    <code class="text-xs bg-[#25d366]/10 text-[#25d366] px-2 py-1 rounded font-bold flex-shrink-0 h-fit">Token</code>
+                    <div><p class="text-sm text-gray-600">Token de autenticacao da instancia. Tambem vai na URL base. Gerado automaticamente ao criar a instancia.</p></div>
+                </div>
+                <div class="flex gap-4">
+                    <code class="text-xs bg-[#25d366]/10 text-[#25d366] px-2 py-1 rounded font-bold flex-shrink-0 h-fit">Client-Token</code>
+                    <div><p class="text-sm text-gray-600">Token da conta (nao da instancia). Vai no header <code class="bg-gray-100 px-1 rounded text-xs">Client-Token</code>. Uma conta pode ter multiplas instancias.</p></div>
+                </div>
+            </div>
+            <div class="mt-4 bg-gray-900 rounded-lg p-4 font-mono text-xs leading-relaxed text-gray-300">
+                <pre class="whitespace-pre"><span class="text-gray-500">// ZApiService.cs — Como as credenciais sao usadas</span>
+<span class="text-blue-300">Base URL</span>: https://api.z-api.io/instances/<span class="text-amber-300">{"{INSTANCE_ID}"}</span>/token/<span class="text-amber-300">{"{TOKEN}"}</span>/
+
+<span class="text-blue-300">Headers</span>:
+  Client-Token: <span class="text-amber-300">{"{CLIENT_TOKEN}"}</span>
+  Content-Type: application/json
+
+<span class="text-gray-500">// Env vars no servidor:</span>
+ZAPI_INSTANCE_ID=3D8A3B...
+ZAPI_TOKEN=9F2C1D...
+ZAPI_CLIENT_TOKEN=F4e8d1...</pre>
+            </div>
+        </div>
+
+        @* ===== ENDPOINTS ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Endpoints Z-API Usados Neste Demo</h2>
         <div class="space-y-3 mb-8">
-            @foreach (var step in _steps)
+            @foreach (var ep in _endpoints)
             {
-                <div class="flex gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-whatsapp text-sm font-bold text-white">
-                        @step.Number
+                <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded text-white @(ep.Method == "POST" ? "bg-green-600" : "bg-blue-600")">@ep.Method</span>
+                        <code class="text-sm font-medium text-gray-900">@ep.Path</code>
                     </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900">@step.Title</h3>
-                        <p class="text-sm text-gray-600 mt-1">@step.Detail</p>
+                    <div class="p-4">
+                        <p class="text-sm text-gray-600 mb-3">@ep.Description</p>
+                        <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs leading-relaxed text-gray-300 overflow-x-auto">
+                            <pre class="whitespace-pre">@ep.Example</pre>
+                        </div>
                     </div>
                 </div>
             }
         </div>
 
-        @* Endpoints Z-API *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Endpoints Principais da Z-API</h2>
-        <div class="rounded-xl border border-gray-200 bg-gray-900 p-5 font-mono text-sm leading-loose text-gray-100 mb-8">
-            <div class="text-gray-500"># Base URL</div>
-            <div class="text-blue-300">https://api.z-api.io/instances/{"{INSTANCE_ID}"}/token/{"{TOKEN}"}/</div>
-            <br/>
-            <div class="text-gray-500"># Enviar texto</div>
-            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../send-text</span></div>
-            <div class="text-gray-400">Header: Client-Token: {"{CLIENT_TOKEN}"}</div>
-            <div class="text-gray-400">@("{") "phone": "5511999999999", "message": "Ola!" @("}")</div>
-            <br/>
-            <div class="text-gray-500"># Enviar imagem</div>
-            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../send-image</span></div>
-            <div class="text-gray-400">@("{") "phone": "...", "image": "https://...", "caption": "Logo" @("}")</div>
-            <br/>
-            <div class="text-gray-500"># Marcar como lida</div>
-            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../read-message</span></div>
-            <div class="text-gray-400">@("{") "phone": "...", "messageId": "..." @("}")</div>
-            <br/>
-            <div class="text-gray-500"># Webhook: mensagem recebida (POST no seu servidor)</div>
-            <div class="text-amber-400">POST /api/zapi/webhook/receive</div>
-            <div class="text-gray-400">@("{") "phone": "...", "text": @("{") "message": "Oi!" @("}"), "senderName": "..." @("}")</div>
-            <br/>
-            <div class="text-gray-500"># Webhook: status de mensagem</div>
-            <div class="text-amber-400">POST /api/zapi/webhook/status</div>
-            <div class="text-gray-400">@("{") "status": "READ", "ids": ["..."], "phone": "..." @("}")</div>
+        @* ===== WEBHOOK FLOW ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Fluxo de Webhooks — Recebimento e Status</h2>
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-5 font-mono text-xs leading-relaxed text-gray-300 mb-4 overflow-x-auto">
+                <pre class="whitespace-pre">
+<span class="text-blue-300">ENVIO DE MENSAGEM (Outbound)</span>
+┌──────────┐      POST /send-text        ┌──────────┐       WhatsApp       ┌──────────┐
+│  Blazor  │ ──────────────────────────▶  │  Z-API   │ ──────────────────▶  │ Contato  │
+│  UI      │                              │  Cloud   │                      │ WhatsApp │
+└──────────┘                              └────┬─────┘                      └──────────┘
+                                               │
+     POST /zapi/webhook/status                 │ Webhook (status changes)
+     @("{") "status": "SENT" @("}")                │
+     @("{") "status": "RECEIVED" @("}")  ◀──────────┘
+     @("{") "status": "READ" @("}")
+
+<span class="text-blue-300">RECEBIMENTO DE MENSAGEM (Inbound)</span>
+┌──────────┐                              ┌──────────┐       WhatsApp       ┌──────────┐
+│  Blazor  │  ◀── StateHasChanged ──────  │  Z-API   │ ◀──────────────────  │ Contato  │
+│  UI      │  (polling 5s busca novos)    │  Webhook │                      │ WhatsApp │
+└──────────┘                              └──────────┘                      └──────────┘
+                                          POST /zapi/webhook/receive
+                                          @("{") "phone": "5511...", "text": @("{") "message": "..." @("}") @("}")
+
+<span class="text-blue-300">DESCONEXAO</span>
+┌──────────┐                              ┌──────────┐
+│  Blazor  │  ◀── alerta na UI ────────  │  Z-API   │  POST /zapi/webhook/disconnected
+│  UI      │  (ZApiConfig mostra status)  │  Webhook │  @("{") "connected": false @("}")
+└──────────┘                              └──────────┘</pre>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3">
+                <div class="rounded-lg border border-gray-200 p-3">
+                    <div class="text-sm font-medium text-gray-900 mb-1">Webhook Receive</div>
+                    <div class="text-xs text-gray-500">Mensagem recebida do contato. Cria/atualiza conversa, cria mensagem com direction=inbound, incrementa unreadCount.</div>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3">
+                    <div class="text-sm font-medium text-gray-900 mb-1">Webhook Status</div>
+                    <div class="text-xs text-gray-500">Mudanca de status de mensagem enviada. Mapeia: SENT→sent, RECEIVED→delivered, READ→read. Atualiza Message.Status.</div>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3">
+                    <div class="text-sm font-medium text-gray-900 mb-1">Webhook Disconnected</div>
+                    <div class="text-xs text-gray-500">WhatsApp desconectou (QR code expirou, celular removeu). Flag interna sinaliza modo simulador.</div>
+                </div>
+            </div>
         </div>
 
-        @* ===== PARTE 2 — Adaptacao ===== *@
+        @* ===== STATUS LIFECYCLE ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Ciclo de Vida de uma Mensagem</h2>
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-5 font-mono text-xs leading-relaxed text-gray-300 mb-4 overflow-x-auto">
+                <pre class="whitespace-pre">
+<span class="text-blue-300">MODO Z-API (real):</span>
+  POST /api/messages → ZApiService.SendTextAsync() → Z-API send-text
+                                                         │
+  Webhook status: SENT ──▶ RECEIVED ──▶ READ             │ (assincrono)
+        ✓ cinza      ✓✓ cinza     ✓✓ azul                │
+                                                         │
+  Message.Status:  "sent"    "delivered"    "read"       │
+  MessageBubble:    ✓          ✓✓             ✓✓ (blue)  │
+
+<span class="text-blue-300">MODO SIMULADOR (fallback):</span>
+  POST /api/messages → Task.Run (background thread)
+                          │
+                          ├── Task.Delay(1s)  → Status = "delivered"  ✓✓
+                          ├── Task.Delay(2s)  → Status = "read"       ✓✓ (blue)
+                          └── Task.Delay(3-5s) → WhatsAppSimulator.GenerateReply()
+                                                 → Cria Message(direction=inbound)</pre>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p class="text-xs text-blue-800"><strong>Importante:</strong> No modo simulador, os delays de status sao feitos via <code class="bg-blue-100 px-1 rounded">Task.Run + Task.Delay + IServiceScopeFactory</code>. O IServiceScopeFactory e necessario porque o Task.Run roda fora do scope do request HTTP, entao precisa criar um novo scope para acessar o DbContext.</p>
+            </div>
+        </div>
+
+        @* ===== PARTE 2 — ADAPTACAO ===== *@
         <div class="rounded-lg bg-[#512bd4]/10 p-4 mb-6 mt-12">
-            <h2 class="text-lg font-bold text-[#512bd4]">Parte 2 — Guia para Desenvolvedores CodeCycle</h2>
-            <p class="text-sm text-gray-600">Como adaptar este demo Z-API para integrar WhatsApp real no ERP Obraxs.</p>
+            <h2 class="text-lg font-bold text-[#512bd4]">Parte 2 — De Demo para Producao</h2>
+            <p class="text-sm text-gray-600">Guia tecnico para adaptar este demo ao ERP Obraxs, com decisoes arquiteturais e pontos de atencao.</p>
         </div>
 
-        @* O que muda *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">De Demo para Producao — O Que Muda</h2>
+        @* Demo vs Producao *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">O Que Muda — Demo vs Producao</h2>
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
             <table class="w-full text-sm">
-                <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Aspecto</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Demo (Atual)</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Producao (Z-API)</th></tr></thead>
+                <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Aspecto</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Demo (Este App)</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Producao (Obraxs)</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Complexidade</th></tr></thead>
                 <tbody>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Envio de Mensagem</td><td class="px-4 py-2 text-gray-500">Simulador ou Z-API demo</td><td class="px-4 py-2">Z-API com numero dedicado</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Recebimento</td><td class="px-4 py-2 text-gray-500">Webhook Z-API (ja funciona)</td><td class="px-4 py-2">Webhook Z-API + fila de processamento</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Status (ticks)</td><td class="px-4 py-2 text-gray-500">Webhook status (ja funciona)</td><td class="px-4 py-2">Webhook status + retry</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Contatos</td><td class="px-4 py-2 text-gray-500">Seed + auto-criacao</td><td class="px-4 py-2">Sync com base de clientes ERP</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Autenticacao</td><td class="px-4 py-2 text-gray-500">Sem auth</td><td class="px-4 py-2">JWT + roles (admin, atendente)</td></tr>
-                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Campanhas</td><td class="px-4 py-2 text-gray-500">Envio direto</td><td class="px-4 py-2">Fila com rate limiting + retry</td></tr>
-                    <tr><td class="px-4 py-2 font-medium">Multi-tenant</td><td class="px-4 py-2 text-gray-500">Banco unico</td><td class="px-4 py-2">Instancia Z-API por empresa/filial</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Autenticacao</td><td class="px-4 py-2 text-gray-500">Sem auth</td><td class="px-4 py-2">JWT + ASP.NET Identity ou Keycloak</td><td class="px-4 py-2"><span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">Media</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Fila de mensagens</td><td class="px-4 py-2 text-gray-500">Task.Run (in-process)</td><td class="px-4 py-2">Redis + BackgroundService ou RabbitMQ</td><td class="px-4 py-2"><span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">Media</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Retry / DLQ</td><td class="px-4 py-2 text-gray-500">Nenhum</td><td class="px-4 py-2">Polly (retry + circuit breaker) + dead letter</td><td class="px-4 py-2"><span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">Media</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Multi-tenant</td><td class="px-4 py-2 text-gray-500">Banco unico</td><td class="px-4 py-2">1 instancia Z-API por empresa/filial</td><td class="px-4 py-2"><span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs">Alta</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Contatos</td><td class="px-4 py-2 text-gray-500">Seed + auto-criacao</td><td class="px-4 py-2">Sync bidirecional com modulo Clientes do ERP</td><td class="px-4 py-2"><span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">Media</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Midia</td><td class="px-4 py-2 text-gray-500">Apenas texto</td><td class="px-4 py-2">Imagens, PDFs, audio via Z-API</td><td class="px-4 py-2"><span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">Baixa</span></td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Observabilidade</td><td class="px-4 py-2 text-gray-500">Console.Log</td><td class="px-4 py-2">Serilog + Seq/Elastic + health checks</td><td class="px-4 py-2"><span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs">Media</span></td></tr>
+                    <tr><td class="px-4 py-2 font-medium">Reconexao</td><td class="px-4 py-2 text-gray-500">Manual (QR code)</td><td class="px-4 py-2">Monitoria + alerta + reconexao automatica</td><td class="px-4 py-2"><span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded text-xs">Baixa</span></td></tr>
                 </tbody>
             </table>
         </div>
 
-        @* Etapas de Adaptacao *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Etapas de Adaptacao</h2>
+        @* ===== PHASES ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Roteiro de Implementacao — 5 Fases</h2>
         <div class="space-y-4 mb-8">
             @foreach (var fase in _phases)
             {
@@ -138,120 +223,258 @@
                     <div class="mb-3 flex items-center gap-3">
                         <span class="rounded-full @fase.Color px-2.5 py-1 text-xs font-bold text-white">@fase.Label</span>
                         <h3 class="font-semibold text-gray-900">@fase.Title</h3>
+                        <span class="ml-auto text-xs text-gray-400">@fase.Effort</span>
                     </div>
                     <p class="text-sm text-gray-600 mb-3">@fase.Desc</p>
-                    <ul class="space-y-1.5">
+                    <div class="space-y-2">
                         @foreach (var task in fase.Tasks)
                         {
-                            <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <div class="flex items-start gap-2 text-sm text-gray-600">
                                 <span class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-300"></span>
                                 @task
-                            </li>
+                            </div>
                         }
-                    </ul>
+                    </div>
+                    @if (!string.IsNullOrEmpty(fase.CodeExample))
+                    {
+                        <div class="mt-3 bg-gray-900 rounded-lg p-4 font-mono text-xs leading-relaxed text-gray-300 overflow-x-auto">
+                            <pre class="whitespace-pre">@fase.CodeExample</pre>
+                        </div>
+                    }
                 </div>
             }
         </div>
 
-        @* Variaveis de Ambiente *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Variaveis de Ambiente para Producao</h2>
-        <div class="rounded-xl border border-gray-200 bg-gray-900 p-5 font-mono text-sm leading-loose text-gray-100 mb-8">
-            <div class="text-gray-500"># Z-API</div>
-            <div><span class="text-amber-300">ZAPI_INSTANCE_ID</span>=sua_instancia_producao</div>
-            <div><span class="text-amber-300">ZAPI_TOKEN</span>=seu_token_producao</div>
-            <div><span class="text-amber-300">ZAPI_CLIENT_TOKEN</span>=seu_client_token</div>
-            <br/>
-            <div class="text-gray-500"># Banco de dados</div>
-            <div><span class="text-amber-300">DATABASE_URL</span>=postgresql://user:pass@@host/db</div>
-            <br/>
-            <div class="text-gray-500"># Fila + Seguranca</div>
-            <div><span class="text-amber-300">REDIS_URL</span>=redis://localhost:6379</div>
-            <div><span class="text-amber-300">JWT_SECRET</span>=chave_secreta_forte</div>
+        @* ===== ENV VARS ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Variaveis de Ambiente</h2>
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-5 font-mono text-xs leading-relaxed text-gray-300">
+                <pre class="whitespace-pre">
+<span class="text-gray-500"># ===== Z-API (obrigatorias para modo real) =====</span>
+<span class="text-amber-300">ZAPI_INSTANCE_ID</span>=sua_instancia      <span class="text-gray-500"># ID da instancia Z-API</span>
+<span class="text-amber-300">ZAPI_TOKEN</span>=seu_token                <span class="text-gray-500"># Token da instancia</span>
+<span class="text-amber-300">ZAPI_CLIENT_TOKEN</span>=seu_client_token  <span class="text-gray-500"># Token da conta</span>
+
+<span class="text-gray-500"># ===== Banco de dados (obrigatoria) =====</span>
+<span class="text-amber-300">DATABASE_URL</span>=postgresql://user:pass@@host/db?sslmode=require
+
+<span class="text-gray-500"># ===== Producao (adicionar) =====</span>
+<span class="text-amber-300">REDIS_URL</span>=redis://localhost:6379    <span class="text-gray-500"># Para fila de mensagens</span>
+<span class="text-amber-300">JWT_SECRET</span>=chave_secreta_forte      <span class="text-gray-500"># Para autenticacao</span>
+<span class="text-amber-300">SERILOG_SEQ_URL</span>=http://seq:5341    <span class="text-gray-500"># Para logs estruturados</span>
+<span class="text-amber-300">ASPNETCORE_ENVIRONMENT</span>=Production  <span class="text-gray-500"># Desativa seed automatico</span></pre>
+            </div>
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p class="text-xs text-blue-800"><strong>Dica:</strong> Se as vars ZAPI_* nao estiverem definidas, o app opera em modo simulador automaticamente. Nao precisa de flag extra — o <code class="bg-blue-100 px-1 rounded">ZApiService.IsConfigured</code> verifica se as 3 credenciais existem.</p>
+            </div>
         </div>
 
-        @* Links *@
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Links Uteis</h2>
+        @* ===== GOTCHAS ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Gotchas e Pontos de Atencao</h2>
+        <div class="space-y-3 mb-8">
+            @foreach (var gotcha in _gotchas)
+            {
+                <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-lg">@gotcha.Icon</span>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-sm">@gotcha.Title</h3>
+                            <p class="text-sm text-gray-600 mt-1">@gotcha.Detail</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* ===== LINKS ===== *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Documentacao e Referencias</h2>
         <div class="grid md:grid-cols-2 gap-3 mb-8">
             @foreach (var link in _links)
             {
                 <a href="@link.Url" target="_blank"
                    class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-colors hover:border-whatsapp hover:bg-[#25d366]/5">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-                    <span class="text-sm font-medium text-gray-700">@link.Title</span>
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">@link.Title</span>
+                        <span class="text-[10px] text-gray-400 block">@link.Subtitle</span>
+                    </div>
                 </a>
             }
         </div>
 
         @* Footer *@
         <div class="text-center text-sm text-gray-400 pb-8 border-t border-gray-200 pt-6">
-            <p>Guia de integracao WhatsApp via Z-API para desenvolvedores CodeCycle.</p>
-            <p class="mt-1">Este demo e uma referencia arquitetural — adapte os modulos conforme a necessidade do ERP Obraxs.</p>
+            <p>Guia tecnico de integracao WhatsApp via Z-API.</p>
+            <p class="mt-1">Referencia arquitetural para desenvolvedores — adapte conforme necessidade do ERP Obraxs.</p>
         </div>
     </div>
 </div>
 
 @code {
-    private record Step(int Number, string Title, string Detail);
-    private record Phase(string Label, string Title, string Desc, string Color, string[] Tasks);
-    private record UsefulLink(string Title, string Url);
+    private record Endpoint(string Method, string Path, string Description, string Example);
+    private record Phase(string Label, string Title, string Desc, string Color, string Effort, string[] Tasks, string? CodeExample);
+    private record Gotcha(string Icon, string Title, string Detail);
+    private record UsefulLink(string Title, string Subtitle, string Url);
 
-    private readonly Step[] _steps =
+    private readonly Endpoint[] _endpoints =
     [
-        new(1, "Criar conta na Z-API", "Acesse z-api.io e crie uma conta. O plano inicial permite 1 instancia gratuita para testes."),
-        new(2, "Obter credenciais", "No painel, copie o Instance ID, Token e Client-Token da sua instancia."),
-        new(3, "Conectar WhatsApp", "Escaneie o QR Code gerado pela Z-API no seu celular (WhatsApp > Dispositivos Conectados)."),
-        new(4, "Configurar webhooks", "No painel da Z-API, configure as URLs de webhook apontando para seu servidor (receive, status, disconnected)."),
-        new(5, "Configurar env vars", "Defina ZAPI_INSTANCE_ID, ZAPI_TOKEN e ZAPI_CLIENT_TOKEN no ambiente do servidor."),
-        new(6, "Testar envio", "Use o Inbox do CRM para enviar uma mensagem. Ela sera enviada pelo WhatsApp real via Z-API.")
+        new("POST", "/send-text",
+            "Envia mensagem de texto para um numero. O phone deve estar no formato E.164 sem '+' (ex: 5511999999999).",
+            @"// Request
+{ ""phone"": ""5511999999999"", ""message"": ""Ola! Sua proposta esta pronta."" }
+
+// Response (200)
+{ ""zapiMessageId"": ""3EB0A..."", ""messageId"": ""BAE5F..."", ""id"": ""3EB0A..."" }
+
+// C# — ZApiService.SendTextAsync()
+var payload = new { phone, message = text };
+var response = await _http.PostAsJsonAsync($""{_baseUrl}/send-text"", payload);"),
+        new("POST", "/send-image",
+            "Envia imagem com caption opcional. Aceita URL publica da imagem.",
+            @"// Request
+{ ""phone"": ""5511999999999"", ""image"": ""https://cdn.example.com/proposta.png"", ""caption"": ""Proposta comercial"" }
+
+// C# — ZApiService.SendImageAsync()
+var payload = new { phone, image = imageUrl, caption };
+var response = await _http.PostAsJsonAsync($""{_baseUrl}/send-image"", payload);"),
+        new("POST", "/send-document",
+            "Envia documento (PDF, XLSX, etc.) com nome de arquivo.",
+            @"// Request
+{ ""phone"": ""5511999999999"", ""document"": ""https://cdn.example.com/orcamento.pdf"", ""fileName"": ""Orcamento-2026.pdf"" }"),
+        new("POST", "/read-message",
+            "Marca uma mensagem como lida (blue ticks no celular do contato).",
+            @"// Request
+{ ""phone"": ""5511999999999"", ""messageId"": ""BAE5F..."" }"),
+        new("GET", "/status",
+            "Verifica status da conexao do WhatsApp (connected/disconnected).",
+            @"// Response (200)
+{ ""connected"": true, ""session"": ""active"", ""smartphoneConnected"": true }
+
+// C# — ZApiService.GetStatusAsync()
+var status = await _http.GetFromJsonAsync<JsonElement>($""{_baseUrl}/status"");")
     ];
 
     private readonly Phase[] _phases =
     [
-        new("Fase 1", "Ambiente de Producao Z-API", "Configurar instancia Z-API dedicada com numero de producao.", "bg-blue-500",
-            ["Criar instancia Z-API dedicada para producao (plano pago)",
-             "Numero de telefone dedicado (nao usar pessoal)",
-             "Configurar webhooks com HTTPS e validacao",
-             "Monitorar status de conexao via /api/zapi/status",
-             "Implementar reconexao automatica se desconectar"]),
+        new("Fase 1", "Infraestrutura Z-API de Producao", "Configurar instancia dedicada com HTTPS, webhooks e monitoramento de conexao.", "bg-blue-500", "~2 dias",
+            [
+                "Criar instancia Z-API dedicada (plano pago) com numero de telefone empresarial",
+                "Configurar webhook URLs com HTTPS obrigatorio (Render ja fornece SSL)",
+                "Implementar health check: GET /api/zapi/status verifica conexao a cada 30s",
+                "Criar alerta (email/Slack) quando webhook /disconnected e acionado",
+                "Reconexao: endpoint que gera novo QR code + notifica admin"
+            ],
+            @"// Exemplo: Health check endpoint
+app.MapGet(""/api/zapi/health"", async (ZApiService zapi) => {
+    var status = await zapi.GetStatusAsync();
+    return status.Connected
+        ? Results.Ok(new { status = ""connected"" })
+        : Results.StatusCode(503, new { status = ""disconnected"" });
+});"),
 
-        new("Fase 2", "Fila de Mensagens", "Adicionar fila para garantir entrega e retry de mensagens.", "bg-green-500",
-            ["Implementar fila de mensagens (Redis/RabbitMQ) para outbound",
-             "Retry com exponential backoff em caso de falha",
-             "Dead letter queue para mensagens que falharam 3x",
-             "Rate limiting para nao sobrecarregar o WhatsApp",
-             "Dashboard de monitoramento de fila"]),
+        new("Fase 2", "Fila de Mensagens + Retry", "Trocar Task.Run por fila persistente para garantir entrega.", "bg-green-500", "~3 dias",
+            [
+                "Substituir Task.Run por Redis + BackgroundService com Channel<OutboundMessage>",
+                "Retry com Polly: 3 tentativas, exponential backoff (2s, 4s, 8s)",
+                "Dead Letter Queue: mensagens que falharam 3x vao para tabela OutboundFailures",
+                "Circuit Breaker: se Z-API retornar 5xx 3 vezes seguidas, pausar envio por 5min",
+                "Rate limiting: maximo 60 msg/min por instancia (para nao triggar ban do WhatsApp)",
+                "Dashboard: fila pendente, taxa de sucesso, ultimas falhas"
+            ],
+            @"// Exemplo: Retry com Polly
+services.AddHttpClient&lt;ZApiService&gt;()
+    .AddPolicyHandler(Policy
+        .Handle&lt;HttpRequestException&gt;()
+        .OrResult&lt;HttpResponseMessage&gt;(r => !r.IsSuccessStatusCode)
+        .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)))
+    );"),
 
-        new("Fase 3", "Integrar com Base de Clientes do ERP", "Sincronizar contatos do modulo de clientes do Obraxs.", "bg-purple-500",
-            ["Sync bidirecional: Cliente ERP → Contato CRM WhatsApp",
-             "Auto-criacao de contato ja funciona via webhook",
-             "Normalizar telefones (E.164: +5511999999999)",
-             "Tags automaticas baseadas em dados do ERP",
-             "Opt-in/opt-out com audit trail"]),
+        new("Fase 3", "Integracao com Base de Clientes ERP", "Sincronizar contatos do modulo Clientes do Obraxs.", "bg-purple-500", "~3 dias",
+            [
+                "Endpoint de sync: POST /api/contacts/sync recebe lista de clientes do ERP",
+                "Match por telefone (normalizado E.164): contato existente = update, novo = insert",
+                "Tags automaticas: classificacao do ERP (construtora, locadora, etc.) → tags do CRM",
+                "Auto-criacao ja funciona: webhook receive cria contato se telefone nao existe",
+                "Opt-in/opt-out: campo optedOut com auditoria (quem, quando, motivo)",
+                "Normalizacao de telefone: regex para extrair digitos, padrao E.164 (55 + DDD + numero)"
+            ],
+            @"// Normalizacao de telefone (E.164)
+public static string NormalizePhone(string raw) {
+    var digits = Regex.Replace(raw, ""[^\d]"", """");
+    if (digits.Length == 11) digits = ""55"" + digits;  // Adiciona codigo pais
+    if (digits.Length == 10) digits = ""55"" + digits;  // DDD fixo sem 9
+    return digits;  // Ex: 5511999999999
+}"),
 
-        new("Fase 4", "Campanhas com Envio Real", "Adaptar campanhas para envio Z-API com monitoramento.", "bg-amber-500",
-            ["CampaignRunner ja envia via Z-API quando configurado",
-             "Adicionar delay configuravel entre mensagens",
-             "Monitorar status de entrega via webhook",
-             "Pausar campanha se muitas falhas consecutivas",
-             "Relatorios de performance de campanha"]),
+        new("Fase 4", "Campanhas com Z-API Real", "Adaptar CampaignRunner para envio real com monitoramento.", "bg-amber-500", "~2 dias",
+            [
+                "CampaignRunner ja suporta envio via Z-API quando configurado — principal trabalho e monitoramento",
+                "Delay entre mensagens: 60s / rateLimit (ex: rateLimit=30 → 2s entre msgs)",
+                "Tracking de status via webhook: CampaignMessage.Status atualizado em tempo real",
+                "Pausa automatica: se >5 falhas consecutivas, pausar campanha e alertar admin",
+                "Relatorio: taxa de entrega, leitura, resposta por campanha"
+            ],
+            null),
 
-        new("Fase 5", "Autenticacao e Multi-tenant", "Seguranca e suporte a multiplas empresas.", "bg-indigo-500",
-            ["Autenticacao via JWT com roles (admin, atendente, visualizador)",
-             "Cada empresa/filial com sua instancia Z-API",
-             "Isolamento de dados por tenant",
-             "Audit log: quem enviou, para quem, quando",
-             "Dashboard administrativo cross-tenant"])
+        new("Fase 5", "Autenticacao + Multi-Tenant", "Seguranca e suporte a multiplas empresas/filiais.", "bg-indigo-500", "~5 dias",
+            [
+                "ASP.NET Identity ou Keycloak para gestao de usuarios e roles",
+                "Roles: admin (config Z-API, campanhas), atendente (chat, pipeline), visualizador (read-only)",
+                "Multi-tenant: cada empresa/filial com sua instancia Z-API + credenciais separadas",
+                "Isolamento: TenantId em todas tabelas, filtro global no EF Core (Query Filters)",
+                "Audit log: tabela AuditEntry com userId, action, entityType, entityId, timestamp",
+                "Middleware de tenant: resolve tenantId do JWT claim e injeta no DbContext"
+            ],
+            @"// Exemplo: Global Query Filter para multi-tenant (EF Core)
+modelBuilder.Entity&lt;Contact&gt;()
+    .HasQueryFilter(c => c.TenantId == _currentTenantId);
+
+// Middleware que resolve tenant do JWT
+app.Use(async (context, next) => {
+    var tenantId = context.User.FindFirstValue(""tenant_id"");
+    context.RequestServices.GetRequiredService&lt;ITenantContext&gt;().TenantId = tenantId;
+    await next();
+});")
+    ];
+
+    private readonly Gotcha[] _gotchas =
+    [
+        new("1.", "Telefone SEMPRE em E.164 sem '+'",
+            "A Z-API espera o telefone como '5511999999999' (sem +, sem espacos, sem hifen). Se enviar com +55 ou (11), da erro 400. O campo Contact.Phone do banco ja esta normalizado."),
+
+        new("2.", "Webhook precisa responder 200 em <5s",
+            "Se o endpoint de webhook demorar mais que 5 segundos para responder, a Z-API faz retry (ate 3x). Processe o webhook rapido: salve no banco e retorne 200. Processamento pesado fica em background (Task.Run ou fila)."),
+
+        new("3.", "QR Code expira em ~60 segundos",
+            "O QR code gerado pela Z-API expira rapido. Na pagina /zapi do demo, o refresh automatico recarrega a cada 30s. Em producao, gere sob demanda e notifique o admin."),
+
+        new("4.", "IServiceScopeFactory para DbContext fora do request",
+            "No Task.Run (auto-resposta simulada) e no CampaignRunner (BackgroundService), voce esta fora do scope HTTP. Nao pode injetar AppDbContext direto — precisa criar um scope: scopeFactory.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>()."),
+
+        new("5.", "EF Core + Prisma = naming convention diferente",
+            "O Prisma cria tabelas com nomes singulares PascalCase (Contact) e colunas camelCase (contactId). O EF Core por padrao gera plurais (Contacts) e PascalCase (ContactId). O mapeamento e feito no OnModelCreating — se esquecer, todas queries dao 42P01 (tabela nao existe)."),
+
+        new("6.", "Blazor Server = 1 conexao SignalR por usuario",
+            "Cada aba aberta mantem uma conexao WebSocket. Em 100 usuarios simultaneos = 100 conexoes. Para escalar, considere Blazor WebAssembly + API ou adicione Azure SignalR Service."),
+
+        new("7.", "Z-API pode desconectar sem aviso",
+            "Se o celular trocar de rede, atualizar o WhatsApp, ou a Meta mudar algo no protocolo, a sessao pode cair. Implemente monitoria ativa com o webhook /disconnected + polling do /status."),
+
+        new("8.", "Tags sao JSON string, nao array nativo",
+            "O campo Contact.Tags e text contendo JSON: '[\"vip\",\"construtora\"]'. Para filtrar no banco, use JsonSerializer.Deserialize<string[]>(). Em producao, considere migrar para jsonb nativo do PostgreSQL.")
     ];
 
     private readonly UsefulLink[] _links =
     [
-        new("Z-API — Site Oficial", "https://z-api.io"),
-        new("Z-API — Documentacao", "https://developer.z-api.io"),
-        new("Z-API — Enviar Texto", "https://developer.z-api.io/en/message/send-message-text"),
-        new("Z-API — Webhooks", "https://developer.z-api.io/en/webhooks/introduction"),
-        new("Z-API — Status de Mensagem", "https://developer.z-api.io/en/webhooks/on-whatsapp-message-status-changes"),
-        new("Z-API — Enviar Imagem", "https://developer.z-api.io/en/message/send-message-image"),
-        new("ASP.NET Core 9 Docs", "https://learn.microsoft.com/en-us/aspnet/core"),
-        new("EF Core 9 Docs", "https://learn.microsoft.com/en-us/ef/core")
+        new("Z-API — Documentacao Oficial", "developer.z-api.io", "https://developer.z-api.io"),
+        new("Z-API — Enviar Texto", "POST /send-text", "https://developer.z-api.io/en/message/send-message-text"),
+        new("Z-API — Enviar Imagem", "POST /send-image", "https://developer.z-api.io/en/message/send-message-image"),
+        new("Z-API — Webhooks", "Configuracao e payloads", "https://developer.z-api.io/en/webhooks/introduction"),
+        new("Z-API — Status de Mensagem", "Webhook on-message-status", "https://developer.z-api.io/en/webhooks/on-whatsapp-message-status-changes"),
+        new("Z-API — QR Code", "Conectar WhatsApp", "https://developer.z-api.io/en/instance/qr-code"),
+        new("ASP.NET Core 9", "Documentacao oficial Microsoft", "https://learn.microsoft.com/en-us/aspnet/core"),
+        new("EF Core 9", "Entity Framework Core", "https://learn.microsoft.com/en-us/ef/core"),
+        new("Blazor Server", "Interactive Server-Side Rendering", "https://learn.microsoft.com/en-us/aspnet/core/blazor"),
+        new("Polly", "Resilience e transient-fault-handling", "https://github.com/App-vNext/Polly")
     ];
 }
