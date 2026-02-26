@@ -22,7 +22,11 @@ if (connStr != null && connStr.StartsWith("postgresql://"))
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connStr));
+    options.UseNpgsql(connStr, npgsql =>
+    {
+        npgsql.CommandTimeout(30);
+        npgsql.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), null);
+    }));
 
 // Z-API Service — central WhatsApp gateway
 builder.Services.AddHttpClient<IZApiService, ZApiService>();
@@ -37,6 +41,7 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.Services.AddHttpClient("LocalApi", client =>
 {
     client.BaseAddress = new Uri($"http://localhost:{port}");
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddScoped(sp =>
 {
@@ -53,6 +58,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
+// Response compression for faster page loads
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
 });
 
 // Kestrel port
@@ -77,28 +88,34 @@ var app = builder.Build();
     }
 }
 
-// Auto-create tables and seed on startup
-try
+// ============================================================
+// Database init in BACKGROUND — app starts accepting requests
+// immediately instead of blocking on DB connect + seed
+// ============================================================
+_ = Task.Run(async () =>
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Connecting to database...");
-    await db.Database.EnsureCreatedAsync();
-    logger.LogInformation("Database ready.");
-
-    if (!await db.Contacts.AnyAsync())
+    try
     {
-        logger.LogInformation("Seeding database...");
-        await DatabaseSeeder.SeedAsync(db);
-        logger.LogInformation("Database seeded.");
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Connecting to database (background)...");
+        await db.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database ready.");
+
+        if (!await db.Contacts.AnyAsync())
+        {
+            logger.LogInformation("Seeding database...");
+            await DatabaseSeeder.SeedAsync(db);
+            logger.LogInformation("Database seeded.");
+        }
     }
-}
-catch (Exception ex)
-{
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Database initialization failed. App will start without seed data.");
-}
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database initialization failed. App will work once DB is available.");
+    }
+});
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
@@ -106,8 +123,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+app.UseResponseCompression();
 app.UseAntiforgery();
 app.MapStaticAssets();
+
+// Health check — responds instantly (Render uses this to detect the service is up)
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
 // Map Minimal API endpoints
 app.MapConversationsApi();

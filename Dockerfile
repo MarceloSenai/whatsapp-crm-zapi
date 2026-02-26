@@ -6,9 +6,14 @@ WORKDIR /src
 COPY src/WhatsAppCrm.Web/WhatsAppCrm.Web.csproj src/WhatsAppCrm.Web/
 RUN dotnet restore src/WhatsAppCrm.Web/WhatsAppCrm.Web.csproj
 
-# Copy everything and build
+# Copy everything and build with ReadyToRun for faster startup
 COPY . .
-RUN dotnet publish src/WhatsAppCrm.Web/WhatsAppCrm.Web.csproj -c Release -o /app/publish
+RUN dotnet publish src/WhatsAppCrm.Web/WhatsAppCrm.Web.csproj \
+    -c Release \
+    -o /app/publish \
+    /p:ReadyToRun=true \
+    /p:TieredCompilation=true \
+    /p:TieredPGO=true
 
 # Runtime stage — standard Debian-based image (most compatible)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
@@ -21,6 +26,10 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV PORT=8080
 ENV DOTNET_gcServer=0
 ENV DOTNET_GCHeapHardLimit=0x10000000
+# Faster startup: skip JIT for R2R assemblies
+ENV DOTNET_ReadyToRun=1
+ENV DOTNET_TieredPGO=1
+ENV DOTNET_TC_QuickJitForLoops=1
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "WhatsAppCrm.Web.dll"]
