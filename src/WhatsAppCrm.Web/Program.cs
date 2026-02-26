@@ -130,20 +130,6 @@ app.MapStaticAssets();
 // Health check — responds instantly (Render uses this to detect the service is up)
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
-// Diagnostic endpoint — temporary, to debug API 500 errors
-app.MapGet("/diag", async (AppDbContext db) =>
-{
-    try
-    {
-        var count = await db.Contacts.CountAsync();
-        return Results.Ok(new { ok = true, contacts = count });
-    }
-    catch (Exception ex)
-    {
-        return Results.Ok(new { ok = false, error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace?[..500] });
-    }
-});
-
 // Map Minimal API endpoints
 app.MapConversationsApi();
 app.MapMessagesApi();
