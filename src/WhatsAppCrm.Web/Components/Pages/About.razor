@@ -1,0 +1,100 @@
+@page "/about"
+
+<div class="h-full overflow-auto bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">WhatsApp CRM Demo — Z-API Edition</h1>
+        <p class="text-gray-500 mb-8">Prototipo full stack demonstrando um CRM com integracao WhatsApp via Z-API. Disponivel em tres versoes para comparacao tecnica.</p>
+
+        @* Version Cards *@
+        <div class="grid md:grid-cols-3 gap-4 mb-10">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-black flex items-center justify-center"><span class="text-white font-bold text-sm">TS</span></div>
+                    <div><h3 class="font-semibold text-gray-900 text-sm">TypeScript</h3><p class="text-[10px] text-gray-400">Next.js + Prisma</p></div>
+                </div>
+                <div class="space-y-1.5 text-xs text-gray-600 mb-3">
+                    <div class="flex justify-between"><span>Framework</span><span class="font-medium">Next.js 16</span></div>
+                    <div class="flex justify-between"><span>WhatsApp</span><span class="font-medium">Simulador</span></div>
+                    <div class="flex justify-between"><span>Deploy</span><span class="font-medium">Docker / Render</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="https://whatsapp-crm-demo-1tqv.onrender.com" target="_blank" class="flex-1 text-center px-2 py-1.5 text-[10px] bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">Demo TS</a>
+                    <a href="https://github.com/MarceloSenai/whatsapp-crm-demo" target="_blank" class="flex-1 text-center px-2 py-1.5 text-[10px] border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">GitHub</a>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-[#512bd4] flex items-center justify-center"><span class="text-white font-bold text-sm">C#</span></div>
+                    <div><h3 class="font-semibold text-gray-900 text-sm">C# Blazor</h3><p class="text-[10px] text-gray-400">ASP.NET Core 9</p></div>
+                </div>
+                <div class="space-y-1.5 text-xs text-gray-600 mb-3">
+                    <div class="flex justify-between"><span>Framework</span><span class="font-medium">Blazor Server</span></div>
+                    <div class="flex justify-between"><span>WhatsApp</span><span class="font-medium">Simulador</span></div>
+                    <div class="flex justify-between"><span>Deploy</span><span class="font-medium">Docker / Render</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="https://whatsapp-crm-csharp.onrender.com" target="_blank" class="flex-1 text-center px-2 py-1.5 text-[10px] bg-[#512bd4] text-white rounded-lg hover:bg-[#3b1f9e] transition-colors">Demo C#</a>
+                    <a href="https://github.com/MarceloSenai/whatsapp-crm-demo-csharp" target="_blank" class="flex-1 text-center px-2 py-1.5 text-[10px] border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">GitHub</a>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-5 shadow-sm border-2 border-[#25d366]">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-[#25d366] flex items-center justify-center"><span class="text-white font-bold text-sm">Z</span></div>
+                    <div><h3 class="font-semibold text-gray-900 text-sm">C# + Z-API</h3><span class="text-[10px] px-1.5 py-0.5 bg-[#25d366] text-white rounded-full">Voce esta aqui</span></div>
+                </div>
+                <div class="space-y-1.5 text-xs text-gray-600 mb-3">
+                    <div class="flex justify-between"><span>Framework</span><span class="font-medium">Blazor Server</span></div>
+                    <div class="flex justify-between"><span>WhatsApp</span><span class="font-medium text-[#25d366]">Z-API (real)</span></div>
+                    <div class="flex justify-between"><span>Deploy</span><span class="font-medium">Docker / Render</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="/zapi" class="flex-1 text-center px-2 py-1.5 text-[10px] bg-[#25d366] text-white rounded-lg hover:bg-[#1da851] transition-colors">Config Z-API</a>
+                    <a href="https://github.com/MarceloSenai/whatsapp-crm-zapi" target="_blank" class="flex-1 text-center px-2 py-1.5 text-[10px] border border-[#25d366] text-[#25d366] rounded-lg hover:bg-[#25d366]/5 transition-colors">GitHub</a>
+                </div>
+            </div>
+        </div>
+
+        @* Comparison Table *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Comparacao Tecnica</h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-10">
+            <table class="w-full">
+                <thead><tr class="bg-gray-50 border-b border-gray-200"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Aspecto</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">TypeScript</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">C#</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">C# + Z-API</th></tr></thead>
+                <tbody class="text-sm">
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">Linguagem</td><td class="px-4 py-2">TypeScript</td><td class="px-4 py-2">C# 13</td><td class="px-4 py-2">C# 13</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">Runtime</td><td class="px-4 py-2">Node.js 20</td><td class="px-4 py-2">.NET 9</td><td class="px-4 py-2">.NET 9</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">UI</td><td class="px-4 py-2">React</td><td class="px-4 py-2">Blazor Server</td><td class="px-4 py-2">Blazor Server</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">ORM</td><td class="px-4 py-2">Prisma 6</td><td class="px-4 py-2">EF Core 9</td><td class="px-4 py-2">EF Core 9</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">WhatsApp</td><td class="px-4 py-2 text-gray-400">Simulador</td><td class="px-4 py-2 text-gray-400">Simulador</td><td class="px-4 py-2 text-[#25d366] font-medium">Z-API (real)</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">Recebimento</td><td class="px-4 py-2 text-gray-400">Auto-resposta</td><td class="px-4 py-2 text-gray-400">Auto-resposta</td><td class="px-4 py-2 text-[#25d366] font-medium">Webhook Z-API</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 text-gray-500">Status (ticks)</td><td class="px-4 py-2 text-gray-400">Task.Delay</td><td class="px-4 py-2 text-gray-400">Task.Delay</td><td class="px-4 py-2 text-[#25d366] font-medium">Webhook Status</td></tr>
+                    <tr><td class="px-4 py-2 text-gray-500">Modo Dual</td><td class="px-4 py-2 text-gray-400">—</td><td class="px-4 py-2 text-gray-400">—</td><td class="px-4 py-2 text-[#25d366] font-medium">Sim (sim + real)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        @* Modules *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Modulos</h2>
+        <div class="grid md:grid-cols-2 gap-4 mb-10">
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200"><h3 class="font-semibold text-gray-900 mb-1">Inbox</h3><p class="text-sm text-gray-500">Chat em tempo real. Via Z-API: mensagens reais do WhatsApp. Sem Z-API: simulador com respostas automaticas.</p></div>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200"><h3 class="font-semibold text-gray-900 mb-1">Pipeline</h3><p class="text-sm text-gray-500">Kanban board com 6 estagios. Mover deals entre colunas. Valor total por estagio.</p></div>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200"><h3 class="font-semibold text-gray-900 mb-1">Campanhas</h3><p class="text-sm text-gray-500">Envio em massa via Z-API com rate limiting. Sem Z-API: simulacao progressiva de envio.</p></div>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200"><h3 class="font-semibold text-gray-900 mb-1">Contatos</h3><p class="text-sm text-gray-500">50 contatos seed + criacao automatica ao receber mensagem de numero novo via Z-API.</p></div>
+        </div>
+
+        @* Architecture *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Arquitetura</h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-10">
+            <div class="space-y-3 text-sm text-gray-600">
+                <div class="flex items-start gap-3"><span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-700 flex-shrink-0">Services/</span><span>ZApiService (gateway HTTP), WhatsAppSimulator (fallback), CampaignRunner (BackgroundService)</span></div>
+                <div class="flex items-start gap-3"><span class="font-mono text-xs bg-[#25d366]/10 px-2 py-1 rounded text-[#25d366] flex-shrink-0">Api/ZApi*</span><span>Webhook receive, status, disconnected + GET status/qrcode</span></div>
+                <div class="flex items-start gap-3"><span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-700 flex-shrink-0">Api/</span><span>7 Minimal APIs: conversations, messages, pipeline, campaigns, contacts, templates, reset</span></div>
+                <div class="flex items-start gap-3"><span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-700 flex-shrink-0">Components/</span><span>Blazor Server: Layout, Pages (8 incluindo ZApiConfig), Shared (11 componentes)</span></div>
+            </div>
+        </div>
+
+        <div class="text-center text-sm text-gray-400 pb-8">
+            <p>Desenvolvido com ASP.NET Core 9 + Blazor Server + EF Core 9 + Z-API</p>
+            <p class="mt-1">Dados de demonstracao — contexto Obraxs ERP para Construcao Civil</p>
+        </div>
+    </div>
+</div>

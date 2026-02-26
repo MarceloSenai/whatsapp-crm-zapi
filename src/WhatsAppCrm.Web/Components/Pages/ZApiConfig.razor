@@ -1,0 +1,219 @@
+@page "/zapi"
+@inject HttpClient Http
+@implements IDisposable
+
+<div class="h-full overflow-auto bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8">
+        @* Header *@
+        <div class="mb-2 flex items-center gap-2 text-sm font-medium text-[#25d366]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+            Z-API Gateway
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Configuracao Z-API</h1>
+        <p class="text-lg text-gray-600 mb-8">Status da integracao com WhatsApp via Z-API.</p>
+
+        @* Status Card *@
+        <div class="rounded-xl border-2 @(_isConnected ? "border-green-400 bg-green-50" : _isConfigured ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white") p-6 shadow-sm mb-8">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex h-14 w-14 items-center justify-center rounded-full @(_isConnected ? "bg-green-500" : _isConfigured ? "bg-amber-500" : "bg-gray-400")">
+                    @if (_isConnected)
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+                    }
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">
+                        @if (_isConnected)
+                        {
+                            <span>Conectado ao WhatsApp</span>
+                        }
+                        else if (_isConfigured)
+                        {
+                            <span>Z-API Configurada — Aguardando Conexao</span>
+                        }
+                        else
+                        {
+                            <span>Modo Simulacao (Demo)</span>
+                        }
+                    </h2>
+                    <p class="text-sm text-gray-600">
+                        @if (_isConnected)
+                        {
+                            <span>Telefone: @_phone — Mensagens sendo enviadas/recebidas via Z-API em tempo real.</span>
+                        }
+                        else if (_isConfigured)
+                        {
+                            <span>Credenciais configuradas. Escaneie o QR Code no celular para conectar.</span>
+                        }
+                        else
+                        {
+                            <span>Nenhuma credencial Z-API configurada. O sistema roda com simulador de mensagens.</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            @if (_isLoading)
+            {
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verificando status...
+                </div>
+            }
+        </div>
+
+        @* How it Works *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Como Funciona</h2>
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-400 text-white text-sm font-bold">1</div>
+                    <h3 class="font-semibold text-gray-900">Sem Z-API (Simulacao)</h3>
+                </div>
+                <p class="text-sm text-gray-600">Quando as variaveis de ambiente <code class="bg-gray-100 px-1 rounded text-xs">ZAPI_*</code> nao estao configuradas, o sistema funciona como demo com respostas automaticas simuladas.</p>
+            </div>
+            <div class="rounded-xl border-2 border-[#25d366] bg-[#25d366]/5 p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#25d366] text-white text-sm font-bold">2</div>
+                    <h3 class="font-semibold text-gray-900">Com Z-API (Real)</h3>
+                </div>
+                <p class="text-sm text-gray-600">Configure as variaveis e as mensagens serao enviadas e recebidas pelo WhatsApp real via Z-API. Webhooks recebem mensagens em tempo real.</p>
+            </div>
+        </div>
+
+        @* Environment Variables *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Variaveis de Ambiente</h2>
+        <div class="rounded-xl border border-gray-200 bg-gray-900 p-5 font-mono text-sm leading-loose text-gray-100 mb-8">
+            <div class="text-gray-500"># Credenciais Z-API (obter em z-api.io)</div>
+            <div><span class="text-amber-300">ZAPI_INSTANCE_ID</span>=seu_instance_id</div>
+            <div><span class="text-amber-300">ZAPI_TOKEN</span>=seu_token</div>
+            <div><span class="text-amber-300">ZAPI_CLIENT_TOKEN</span>=seu_client_token</div>
+            <br/>
+            <div class="text-gray-500"># Opcional — URL base (padrao: https://api.z-api.io)</div>
+            <div><span class="text-amber-300">ZAPI_BASE_URL</span>=https://api.z-api.io</div>
+            <br/>
+            <div class="text-gray-500"># Banco de dados</div>
+            <div><span class="text-amber-300">DATABASE_URL</span>=postgresql://user:pass@@host/db</div>
+        </div>
+
+        @* Webhook Configuration *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Configuracao de Webhooks</h2>
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <p class="text-sm text-gray-600 mb-4">Configure as seguintes URLs no painel da Z-API (z-api.io > Instancias > Editar):</p>
+            <div class="space-y-3">
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Webhook de Recebimento</div>
+                    <code class="text-sm text-gray-900 break-all">https://seu-app.onrender.com/api/zapi/webhook/receive</code>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Webhook de Status</div>
+                    <code class="text-sm text-gray-900 break-all">https://seu-app.onrender.com/api/zapi/webhook/status</code>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Webhook de Desconexao</div>
+                    <code class="text-sm text-gray-900 break-all">https://seu-app.onrender.com/api/zapi/webhook/disconnected</code>
+                </div>
+            </div>
+        </div>
+
+        @* API Endpoints *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Endpoints da API Z-API</h2>
+        <div class="rounded-xl border border-gray-200 bg-gray-900 p-5 font-mono text-sm leading-loose text-gray-100 mb-8">
+            <div class="text-gray-500"># Enviar texto</div>
+            <div><span class="text-green-400">POST</span> <span class="text-blue-300">https://api.z-api.io/instances/{"{ID}"}/token/{"{TOKEN}"}/send-text</span></div>
+            <div class="text-gray-400">Header: Client-Token: {"{CLIENT_TOKEN}"}</div>
+            <div class="text-gray-400">Body: @("{") "phone": "5511999999999", "message": "Ola!" @("}")</div>
+            <br/>
+            <div class="text-gray-500"># Enviar imagem</div>
+            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../send-image</span></div>
+            <div class="text-gray-400">Body: @("{") "phone": "...", "image": "https://...", "caption": "..." @("}")</div>
+            <br/>
+            <div class="text-gray-500"># Enviar documento</div>
+            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../send-document/pdf</span></div>
+            <div class="text-gray-400">Body: @("{") "phone": "...", "document": "https://...", "fileName": "doc.pdf" @("}")</div>
+            <br/>
+            <div class="text-gray-500"># Marcar como lida</div>
+            <div><span class="text-green-400">POST</span> <span class="text-blue-300">.../read-message</span></div>
+            <div class="text-gray-400">Body: @("{") "phone": "...", "messageId": "..." @("}")</div>
+        </div>
+
+        @* Features *@
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Recursos</h2>
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-1">Dual Mode</h3>
+                <p class="text-sm text-gray-500">Funciona como demo (simulador) ou com WhatsApp real via Z-API. Basta configurar as variaveis.</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-1">Auto-Contato</h3>
+                <p class="text-sm text-gray-500">Quando uma mensagem chega de um numero novo, o contato e criado automaticamente no CRM.</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-1">Status Real</h3>
+                <p class="text-sm text-gray-500">Ticks de status (enviado, entregue, lido) atualizados em tempo real via webhook de status.</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-1">Campanhas Z-API</h3>
+                <p class="text-sm text-gray-500">Campanhas de marketing enviadas pelo WhatsApp real com rate limiting configuravel.</p>
+            </div>
+        </div>
+
+        @* Footer *@
+        <div class="text-center text-sm text-gray-400 pb-8 border-t border-gray-200 pt-6">
+            <p>Integracao WhatsApp CRM via Z-API</p>
+            <p class="mt-1">
+                <a href="https://z-api.io" target="_blank" class="text-[#25d366] hover:underline">z-api.io</a> —
+                <a href="https://developer.z-api.io" target="_blank" class="text-[#25d366] hover:underline">Documentacao Z-API</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _isConfigured;
+    private bool _isConnected;
+    private string? _phone;
+    private System.Threading.Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatus();
+        // Poll status every 10s
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            await LoadStatus();
+            await InvokeAsync(StateHasChanged);
+        }, null, 10000, 10000);
+    }
+
+    private async Task LoadStatus()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<ZApiStatusResponse>("/api/zapi/status");
+            if (response != null)
+            {
+                _isConfigured = response.Configured;
+                _isConnected = response.Connected;
+                _phone = response.Phone;
+            }
+        }
+        catch { }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public void Dispose() => _timer?.Dispose();
+
+    private record ZApiStatusResponse(bool Configured, bool SimulationMode, bool Connected, string? Phone, string? SmartphoneConnected);
+}
