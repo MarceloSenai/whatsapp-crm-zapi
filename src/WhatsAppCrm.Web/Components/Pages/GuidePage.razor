@@ -1,0 +1,1029 @@
+@page "/guide"
+
+<div class="h-full overflow-auto bg-gray-50">
+    <div class="max-w-5xl mx-auto p-8">
+        @* Header *@
+        <div class="mb-2 flex items-center gap-2 text-sm font-medium text-whatsapp">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Guia de Integracao para Desenvolvedores
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Guia de Integracao — WhatsApp CRM Z-API</h1>
+        <p class="text-lg text-gray-600 mb-4">
+            Documentacao completa para desenvolvedores plenos. Cobre a arquitetura do projeto, modulos,
+            estrategia de integracao e o caminho de demo para producao no seu CRM existente.
+        </p>
+        <div class="flex flex-wrap gap-3 mb-10">
+            <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Tempo de leitura: ~30 min</span>
+            <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Integracao: 2-5 dias</span>
+            <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">Nivel: Dev Pleno</span>
+        </div>
+
+        @* ===== SUMARIO ===== *@
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-10">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Sumario</h2>
+            <div class="grid md:grid-cols-2 gap-x-8 gap-y-2">
+                <a href="#section-0" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">0. Conceitos Fundamentais</a>
+                <a href="#section-9" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">9. Dashboard de Performance</a>
+                <a href="#section-1" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">1. Visao Geral da Arquitetura</a>
+                <a href="#section-10" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">10. Migracao de Banco de Dados</a>
+                <a href="#section-2" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">2. Mapa de Dependencias</a>
+                <a href="#section-11" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">11. Naming Conventions</a>
+                <a href="#section-3" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">3. Pre-requisitos do Projeto</a>
+                <a href="#section-12" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">12. Variaveis de Ambiente</a>
+                <a href="#section-4" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">4. Estrategia de Integracao</a>
+                <a href="#section-13" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">13. Docker e Deploy</a>
+                <a href="#section-5" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">5. Modulo 1 — Entidades</a>
+                <a href="#section-14" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">14. Checklist Final</a>
+                <a href="#section-6" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">6. Modulo 2 — API Endpoints</a>
+                <a href="#section-15" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">15. Exemplo Pratico (so Dashboard)</a>
+                <a href="#section-7" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">7. Modulo 3 — Servicos</a>
+                <a href="#section-16" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">16. Troubleshooting</a>
+                <a href="#section-8" class="text-sm text-blue-600 hover:text-blue-800 hover:underline py-1">8. Modulo 4 — UI Blazor</a>
+            </div>
+        </div>
+
+        @* ===== SECAO 0 — CONCEITOS FUNDAMENTAIS ===== *@
+        <div id="section-0" class="rounded-lg bg-blue-50 border border-blue-200 p-4 mb-6">
+            <h2 class="text-lg font-bold text-blue-800">0. Conceitos Fundamentais</h2>
+            <p class="text-sm text-blue-600">Leia antes de tudo se algum desses termos e novo para voce.</p>
+        </div>
+
+        @* Minimal API *@
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">1</span>
+                O que e Minimal API?
+            </h3>
+            <p class="text-sm text-gray-600 mb-3">
+                E o jeito moderno do .NET de criar endpoints HTTP <strong>sem Controllers</strong>. Em vez de criar uma classe <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">DashboardController</code> com decorators, voce escreve direto:
+            </p>
+            <div class="bg-gray-900 rounded-lg p-4 mb-3 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// Minimal API (este projeto usa isso)</span>
+app.MapGet(<span class="text-yellow-300">"/api/dashboard"</span>, async (AppDbContext db) => {
+    var dados = await db.Contacts.CountAsync();
+    return Results.Ok(new { total = dados });
+});</pre>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-xs text-amber-800"><strong>Por que importa?</strong> Na pasta <code class="bg-amber-100 px-1 rounded">Api/</code>, voce vai ver lambdas em vez de classes. Se seu CRM usa Controllers, a Secao 6.2 mostra como converter.</p>
+            </div>
+        </div>
+
+        @* Blazor Server *@
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">2</span>
+                O que e Blazor Server?
+            </h3>
+            <p class="text-sm text-gray-600 mb-3">
+                Framework da Microsoft onde a UI roda <strong>no servidor</strong> (nao no navegador). O navegador recebe HTML renderizado e se comunica via <strong>SignalR</strong> (WebSocket).
+            </p>
+            <div class="grid md:grid-cols-3 gap-3">
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-sm font-medium text-gray-900">Codigo C# no servidor</div>
+                    <div class="text-xs text-gray-500">O codigo da pagina roda no servidor, nao no browser.</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-sm font-medium text-gray-900">UI atualizada via WebSocket</div>
+                    <div class="text-xs text-gray-500">Cliques e interacoes sao enviados ao servidor e a UI e atualizada.</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                    <div class="text-sm font-medium text-gray-900">HttpClient interno</div>
+                    <div class="text-xs text-gray-500">Chamadas API sao servidor-para-servidor (localhost), nao passam pela internet.</div>
+                </div>
+            </div>
+        </div>
+
+        @* EF Core *@
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">3</span>
+                EF Core, DI e SignalR
+            </h3>
+            <div class="space-y-3 text-sm text-gray-600">
+                <p><strong>Entity Framework Core</strong> — ORM do .NET. Traduz classes C# para tabelas. O <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">DbContext</code> e o "hub" do banco.</p>
+                <p><strong>Dependency Injection (DI)</strong> — Dependencias sao injetadas automaticamente pelo framework. No <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">Program.cs</code> voce registra (<code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">builder.Services.AddDbContext</code>) e o ASP.NET injeta nos endpoints.</p>
+                <p><strong>SignalR</strong> — WebSockets para tempo real. No Blazor Server ja vem incluido — voce nao precisa configurar nada.</p>
+                <p><strong>Seed Data</strong> — Dados de demonstracao inseridos automaticamente pelo <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">DatabaseSeeder.cs</code> quando o banco esta vazio.</p>
+            </div>
+        </div>
+
+        @* ===== SECAO 1 — ARQUITETURA ===== *@
+        <div id="section-1" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">1. Visao Geral da Arquitetura</h2>
+            <p class="text-sm text-gray-600">Stack completa e camadas do projeto.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">┌─────────────────────────────────────────────────────────────┐
+│                    BLAZOR SERVER UI                          │
+│  Pages: Dashboard, Inbox, Pipeline, Contacts, Campaigns     │
+│  Shared: ChatPanel, KanbanBoard, ContactList, CampaignList  │
+├─────────────────────────────────────────────────────────────┤
+│                  JS INTEROP (wwwroot/js)                     │
+│  charts.js (Chart.js) │ pipeline-interop.js (SortableJS)    │
+├─────────────────────────────────────────────────────────────┤
+│                 MINIMAL API LAYER (11 endpoints)             │
+│  /api/dashboard │ /api/contacts │ /api/pipeline │ etc.      │
+├─────────────────────────────────────────────────────────────┤
+│                      SERVICE LAYER                           │
+│  ZApiService │ CampaignRunner │ WhatsAppSimulator            │
+├─────────────────────────────────────────────────────────────┤
+│                DATA LAYER (EF Core 9 + Npgsql)               │
+│  AppDbContext │ DatabaseSeeder │ 12 Entities                 │
+├─────────────────────────────────────────────────────────────┤
+│                PostgreSQL (Neon / Render)                     │
+└─────────────────────────────────────────────────────────────┘</pre>
+            </div>
+            <h3 class="text-sm font-bold text-gray-900 mb-2">Stack completa</h3>
+            <div class="grid md:grid-cols-2 gap-2 text-xs text-gray-600">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span>.NET 9.0 (ASP.NET Core + Blazor Server)</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span>Entity Framework Core 9.0.4 (Npgsql)</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span>PostgreSQL (Neon, Render, Supabase)</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-500"></span>Chart.js 4.x + SortableJS 1.15.x</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-500"></span>Tailwind CSS 3.4 (via CDN)</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span>Docker (multi-stage build)</div>
+            </div>
+        </div>
+
+        @* ===== SECAO 2 — DEPENDENCIAS ===== *@
+        <div id="section-2" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">2. Mapa de Dependencias entre Modulos</h2>
+            <p class="text-sm text-gray-600">Entenda o grafo antes de copiar qualquer arquivo.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">Entities <span class="text-gray-500">(zero dependencia externa)</span>
+    │
+    ├──► AppDbContext <span class="text-gray-500">(depende de: Entities)</span>
+    │       │
+    │       ├──► API Endpoints <span class="text-gray-500">(depende de: AppDbContext, Entities)</span>
+    │       │       │
+    │       │       └──► Services <span class="text-gray-500">(depende de: AppDbContext, Entities, HttpClient)</span>
+    │       │
+    │       └──► DatabaseSeeder <span class="text-gray-500">(depende de: AppDbContext, Entities)</span>
+    │
+    └──► Blazor Components <span class="text-gray-500">(depende de: HttpClient → API Endpoints)</span>
+            │
+            └──► JS Interop <span class="text-gray-500">(depende de: wwwroot/js/*.js + CDN libs)</span></pre>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                <p class="text-xs text-emerald-800"><strong>Regra de ouro:</strong> Sempre integre de baixo para cima (Entities → Data → API → Services → UI). A cada modulo, rode <code class="bg-emerald-100 px-1 rounded">dotnet build</code>. Se compilar sem erros, avance.</p>
+            </div>
+        </div>
+
+        @* ===== SECAO 3 — PRE-REQUISITOS ===== *@
+        <div id="section-3" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">3. Pre-requisitos do Projeto Destino</h2>
+            <p class="text-sm text-gray-600">O que seu CRM precisa ter antes de comecar.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
+            <table class="w-full text-sm">
+                <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Cenario</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">O que fazer</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-50">
+                        <td class="px-4 py-3 font-medium text-green-700">CRM e .NET (Blazor/ASP.NET)</td>
+                        <td class="px-4 py-3 text-gray-600">Integracao direta. Adicione <code class="bg-gray-100 px-1 rounded text-xs">Npgsql.EntityFrameworkCore.PostgreSQL</code> via NuGet.</td>
+                    </tr>
+                    <tr class="border-b border-gray-50">
+                        <td class="px-4 py-3 font-medium text-blue-700">CRM nao e .NET</td>
+                        <td class="px-4 py-3 text-gray-600">Traduza Entities → models do seu ORM, APIs → seu framework, HTML/Tailwind → seu frontend, charts.js funciona em qualquer frontend.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        @* ===== SECAO 4 — ESTRATEGIA ===== *@
+        <div id="section-4" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">4. Estrategia de Integracao (Passo a Passo)</h2>
+            <p class="text-sm text-gray-600">Feature Branch + Modulos Incrementais.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Fluxo recomendado</h3>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500"># 1. Clone seu CRM existente</span>
+git clone https://github.com/SuaOrg/seu-crm.git
+cd seu-crm
+
+<span class="text-gray-500"># 2. Crie uma branch de integracao</span>
+git checkout -b feat/whatsapp-crm-integration
+
+<span class="text-gray-500"># 3. Clone este projeto como referencia (NAO dentro do seu repo)</span>
+cd ..
+git clone https://github.com/MarceloSenai/whatsapp-crm-zapi.git whatsapp-crm-ref
+cd seu-crm
+
+<span class="text-gray-500"># 4. Integre modulo por modulo (ordem importa!)</span>
+<span class="text-gray-500">#    Modulo 1: Entidades + DbContext</span>
+<span class="text-gray-500">#    Modulo 2: API Endpoints</span>
+<span class="text-gray-500">#    Modulo 3: Services</span>
+<span class="text-gray-500">#    Modulo 4: UI</span>
+<span class="text-gray-500">#    Modulo 5: Dashboard</span>
+
+<span class="text-gray-500"># 5. A cada modulo: compile, teste, commite</span>
+dotnet build
+git add -A && git commit -m <span class="text-yellow-300">"feat: integrate module X"</span>
+
+<span class="text-gray-500"># 6. Quando tudo OK, abra um PR</span>
+git push -u origin feat/whatsapp-crm-integration</pre>
+            </div>
+        </div>
+
+        @* ===== SECAO 5 — MODULO 1: ENTIDADES ===== *@
+        <div id="section-5" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">5. Modulo 1 — Entidades e Camada de Dados</h2>
+            <p class="text-sm text-gray-600">12 entidades EF Core, campos UTM, relacionamentos.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Arquivos a copiar</h3>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">src/WhatsAppCrm.Web/Entities/
+├── Contact.cs              <span class="text-gray-500">← Entidade principal (UTM, tags, opt-out)</span>
+├── Conversation.cs         <span class="text-gray-500">← Conversas WhatsApp</span>
+├── Message.cs              <span class="text-gray-500">← Mensagens (inbound/outbound)</span>
+├── Pipeline.cs             <span class="text-gray-500">← Pipeline de vendas</span>
+├── Stage.cs                <span class="text-gray-500">← Estagios do pipeline</span>
+├── Deal.cs                 <span class="text-gray-500">← Negocios/oportunidades</span>
+├── Campaign.cs             <span class="text-gray-500">← Campanhas (WhatsApp + paid ads)</span>
+├── CampaignMessage.cs      <span class="text-gray-500">← Mensagens de campanha</span>
+├── Template.cs             <span class="text-gray-500">← Templates WhatsApp</span>
+├── ContactFeedback.cs      <span class="text-gray-500">← Feedbacks/notas sobre contatos</span>
+├── CampaignSpendDaily.cs   <span class="text-gray-500">← Gasto diario por campanha</span>
+└── Conversion.cs           <span class="text-gray-500">← Conversoes (lead → venda)</span></pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Cenario A: Seu CRM ja tem Contact, Deal, etc.</h3>
+            <p class="text-sm text-gray-600 mb-3">Nao crie entidades duplicadas. Adicione os campos faltantes:</p>
+            <div class="bg-gray-900 rounded-lg p-4 mb-3 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// No seu Contact.cs existente, adicione:</span>
+public string? UtmSource { get; set; }
+public string? UtmMedium { get; set; }
+public string? UtmCampaign { get; set; }
+public string? UtmContent { get; set; }
+public string? UtmTerm { get; set; }
+public string? Gclid { get; set; }
+public string? Fbclid { get; set; }
+public string? LeadCampaignId { get; set; }
+public Campaign? LeadCampaign { get; set; }
+
+<span class="text-gray-500">// Collections</span>
+public ICollection&lt;Conversion&gt; Conversions { get; set; } = [];
+public ICollection&lt;ContactFeedback&gt; Feedbacks { get; set; } = [];</pre>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-xs text-amber-800"><strong>Por que nao duplicar?</strong> Se seu CRM ja tem uma tabela Contacts com dados reais, criar outra entidade Contact causaria conflitos. O correto e enriquecer a entidade existente.</p>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Cenario B: Seu CRM nao tem essas entidades</h3>
+            <p class="text-sm text-gray-600 mb-3">Copie os arquivos inteiros, ajustando namespace e tipo de ID:</p>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// 1. Namespace: troque para o seu</span>
+namespace SeuCrm.Domain.Entities;
+
+<span class="text-gray-500">// 2. IDs: este projeto usa string (GUID truncado 25 chars)</span>
+public string Id { get; set; } = Guid.NewGuid().ToString(<span class="text-yellow-300">"N"</span>)[..25];
+<span class="text-gray-500">// Para int:</span>
+public int Id { get; set; }        <span class="text-gray-500">// auto-increment</span>
+<span class="text-gray-500">// Para Guid nativo:</span>
+public Guid Id { get; set; }       <span class="text-gray-500">// Guid nativo</span></pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Naming Conventions no banco</h3>
+            <div class="grid md:grid-cols-3 gap-3 mb-4">
+                <div class="rounded-lg bg-green-50 border border-green-200 p-3">
+                    <div class="text-sm font-medium text-green-800">camelCase (este projeto)</div>
+                    <div class="text-xs text-green-600 font-mono mt-1">createdAt, utmSource</div>
+                </div>
+                <div class="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                    <div class="text-sm font-medium text-blue-800">PascalCase (padrao .NET)</div>
+                    <div class="text-xs text-blue-600 font-mono mt-1">CreatedAt, UtmSource</div>
+                </div>
+                <div class="rounded-lg bg-purple-50 border border-purple-200 p-3">
+                    <div class="text-sm font-medium text-purple-800">snake_case (PostgreSQL)</div>
+                    <div class="text-xs text-purple-600 font-mono mt-1">created_at, utm_source</div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500">Se o padrao do seu banco nao bater com o deste projeto, as queries vao dar erro. Veja a Secao 11 para resolver.</p>
+        </div>
+
+        @* ===== SECAO 6 — MODULO 2: APIs ===== *@
+        <div id="section-6" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">6. Modulo 2 — API Endpoints (Minimal APIs)</h2>
+            <p class="text-sm text-gray-600">11 endpoints, conversao para Controllers, logica de negocios critica.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Arquivos a copiar</h3>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">src/WhatsAppCrm.Web/Api/
+├── DashboardApi.cs          <span class="text-gray-500">← KPIs, funil, graficos, ranking</span>
+├── ContactsApi.cs           <span class="text-gray-500">← CRUD contatos + UTM</span>
+├── ContactFeedbacksApi.cs   <span class="text-gray-500">← Notas/feedbacks por contato</span>
+├── CampaignSpendApi.cs      <span class="text-gray-500">← Gasto diario por campanha</span>
+├── PipelineApi.cs           <span class="text-gray-500">← Pipeline Kanban + auto-conversao</span>
+├── ConversationsApi.cs      <span class="text-gray-500">← Listagem de conversas WhatsApp</span>
+├── MessagesApi.cs           <span class="text-gray-500">← Envio/recebimento de mensagens</span>
+├── CampaignsApi.cs          <span class="text-gray-500">← CRUD campanhas + start</span>
+├── TemplatesApi.cs          <span class="text-gray-500">← Templates WhatsApp</span>
+├── ResetApi.cs              <span class="text-gray-500">← Reset demo (remover em producao)</span>
+└── ZApiWebhookApi.cs        <span class="text-gray-500">← Webhooks do Z-API</span></pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Conversao: Minimal API → Controller</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-2">ESTE PROJETO (Minimal API)</div>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                        <pre class="text-xs text-green-400 font-mono leading-relaxed">app.MapGet(<span class="text-yellow-300">"/api/dashboard"</span>,
+  async (string? from, AppDbContext db) =>
+{
+    <span class="text-gray-500">// ... logica ...</span>
+    return Results.Ok(new { kpi });
+});</pre>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-2">SEU PROJETO (Controller)</div>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                        <pre class="text-xs text-green-400 font-mono leading-relaxed">[ApiController]
+[Route(<span class="text-yellow-300">"api/[controller]"</span>)]
+public class DashboardController
+    : ControllerBase
+{
+    [HttpGet]
+    public async Task&lt;IActionResult&gt;
+        Get([FromQuery] string? from)
+    {
+        <span class="text-gray-500">// mesma logica</span>
+        return Ok(new { kpi });
+    }
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Logica critica: Auto-conversao (Pipeline → Fechado/Ganho)</h3>
+            <p class="text-sm text-gray-600 mb-3">Quando um deal e movido para "Fechado/Ganho" (Order == 5), o sistema cria automaticamente um <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">Conversion</code>. Sem isso, ROAS e ROI ficam zerados.</p>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// PipelineApi.cs — quando deal move para stage Order == 5:</span>
+if (newStage.Order == 5) <span class="text-gray-500">// "Fechado/Ganho"</span>
+{
+    var contact = await db.Contacts.FindAsync(deal.ContactId);
+    db.Conversions.Add(new Conversion
+    {
+        ContactId = deal.ContactId,
+        DealId = deal.Id,
+        CampaignId = contact?.LeadCampaignId,
+        Value = deal.Value,
+        ConvertedAt = DateTime.UtcNow
+    });
+}</pre>
+            </div>
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Formulas dos KPIs</h3>
+            <div class="grid md:grid-cols-3 gap-3">
+                <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+                    <div class="text-sm font-bold text-red-700">CPL</div>
+                    <div class="text-xs text-red-600 font-mono">totalSpend / totalLeads</div>
+                    <div class="text-xs text-gray-500 mt-1">"Quanto gastei por lead?"</div>
+                </div>
+                <div class="rounded-lg bg-green-50 border border-green-200 p-3">
+                    <div class="text-sm font-bold text-green-700">ROAS</div>
+                    <div class="text-xs text-green-600 font-mono">revenue / totalSpend</div>
+                    <div class="text-xs text-gray-500 mt-1">"Cada R$1 investido gerou quanto?"</div>
+                </div>
+                <div class="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                    <div class="text-sm font-bold text-blue-700">ROI</div>
+                    <div class="text-xs text-blue-600 font-mono">(revenue - spend) / spend x 100</div>
+                    <div class="text-xs text-gray-500 mt-1">"% de lucro sobre investimento"</div>
+                </div>
+            </div>
+        </div>
+
+        @* ===== SECAO 7 — MODULO 3: SERVICOS ===== *@
+        <div id="section-7" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">7. Modulo 3 — Servicos (Z-API, Campaign Runner)</h2>
+            <p class="text-sm text-gray-600">Gateway WhatsApp, fila de campanhas, modo simulacao.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">ZApiService — dois modos</h3>
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-4">
+                <table class="w-full text-sm">
+                    <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Modo</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Quando</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Comportamento</th></tr></thead>
+                    <tbody>
+                        <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium text-green-700">Real</td><td class="px-4 py-2">ZAPI_INSTANCE_ID + ZAPI_TOKEN configurados</td><td class="px-4 py-2">Chama API real do Z-API</td></tr>
+                        <tr><td class="px-4 py-2 font-medium text-blue-700">Simulacao</td><td class="px-4 py-2">Variaveis nao configuradas</td><td class="px-4 py-2">Loga no console, retorna IDs fake</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">CampaignRunner — Background Service</h3>
+            <p class="text-sm text-gray-600 mb-3">
+                BackgroundService que processa fila de campanhas. Usa <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">Channel&lt;T&gt;</code> (fila thread-safe do .NET).
+            </p>
+            <div class="bg-gray-900 rounded-lg p-4 mb-3 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// Fluxo simplificado:</span>
+<span class="text-gray-500">// 1. Vendedor clica "Iniciar Campanha" na UI</span>
+<span class="text-gray-500">// 2. UI chama POST /api/campaigns/{"{id}"}/start</span>
+<span class="text-gray-500">// 3. API faz: campaignQueue.Enqueue(campaignId)</span>
+<span class="text-gray-500">// 4. CampaignRunner pega da fila e processa</span>
+<span class="text-gray-500">// 5. Para cada contato: envia WhatsApp + atualiza status</span>
+<span class="text-gray-500">// 6. Marca campanha como "completed"</span></pre>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-xs text-amber-800"><strong>Se seu CRM ja usa Hangfire, Quartz, ou similar:</strong> Substitua o CampaignRunner pelo seu job scheduler. Mantenha a logica de processamento do <code class="bg-amber-100 px-1 rounded">ExecuteAsync</code>.</p>
+            </div>
+        </div>
+
+        @* ===== SECAO 8 — MODULO 4: UI ===== *@
+        <div id="section-8" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">8. Modulo 4 — UI Blazor (Componentes e Paginas)</h2>
+            <p class="text-sm text-gray-600">Estrutura de componentes, JS Interop, CDN links.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Estrutura de componentes</h3>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">Components/
+├── Layout/
+│   ├── MainLayout.razor      <span class="text-gray-500">← Layout master (sidebar + content)</span>
+│   ├── Sidebar.razor          <span class="text-gray-500">← Menu de navegacao</span>
+│   └── NavItem.razor          <span class="text-gray-500">← Item de menu reutilizavel</span>
+├── Pages/
+│   ├── DashboardPage.razor    <span class="text-gray-500">← Performance analytics</span>
+│   ├── Inbox.razor            <span class="text-gray-500">← Lista de conversas</span>
+│   ├── Contacts.razor         <span class="text-gray-500">← Gestao de contatos</span>
+│   ├── PipelinePage.razor     <span class="text-gray-500">← Kanban de vendas</span>
+│   ├── Campaigns.razor        <span class="text-gray-500">← Lista de campanhas</span>
+│   └── ... (mais paginas)
+├── Shared/
+│   ├── ChatPanel.razor        <span class="text-gray-500">← Thread de mensagens</span>
+│   ├── KanbanBoard.razor      <span class="text-gray-500">← Board pipeline</span>
+│   ├── ContactList.razor      <span class="text-gray-500">← Tabela de contatos</span>
+│   └── ... (mais componentes)
+└── App.razor                  <span class="text-gray-500">← Head (CDN links), Routes</span></pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Se seu CRM usa React / Vue / Angular</h3>
+            <p class="text-sm text-gray-600 mb-3">O HTML + Tailwind CSS e 100% reutilizavel. Extraia os templates e adapte ao seu framework. charts.js funciona em qualquer frontend.</p>
+            <h3 class="text-sm font-bold text-gray-900 mb-3 mt-4">CDN links necessarios</h3>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">&lt;script src=<span class="text-yellow-300">"https://cdn.tailwindcss.com/3.4.17"</span>&gt;&lt;/script&gt;
+&lt;script src=<span class="text-yellow-300">"https://cdn.jsdelivr.net/npm/chart.js@4"</span>&gt;&lt;/script&gt;
+&lt;script src=<span class="text-yellow-300">"https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"</span>&gt;&lt;/script&gt;</pre>
+            </div>
+        </div>
+
+        @* ===== SECAO 9 — DASHBOARD ===== *@
+        <div id="section-9" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">9. Modulo 5 — Dashboard de Performance (Lead Tracking)</h2>
+            <p class="text-sm text-gray-600">Modulo mais valioso para integracao. Funciona de forma independente.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Arquivos minimos necessarios</h3>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">Entities/
+├── CampaignSpendDaily.cs    <span class="text-gray-500">← NOVO</span>
+├── Conversion.cs            <span class="text-gray-500">← NOVO</span>
+└── ContactFeedback.cs       <span class="text-gray-500">← NOVO</span>
+
+Api/
+├── DashboardApi.cs          <span class="text-gray-500">← Endpoint principal</span>
+├── CampaignSpendApi.cs      <span class="text-gray-500">← CRUD gasto diario</span>
+└── ContactFeedbacksApi.cs   <span class="text-gray-500">← CRUD feedbacks</span>
+
+Components/Pages/
+└── DashboardPage.razor      <span class="text-gray-500">← UI completa</span>
+
+wwwroot/js/
+└── charts.js                <span class="text-gray-500">← Chart.js interop</span>
+
+Helpers/
+└── Formatters.cs            <span class="text-gray-500">← FormatCurrency, FormatPercent</span></pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Resposta do GET /api/dashboard</h3>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed">{
+  <span class="text-yellow-300">"kpi"</span>: {
+    <span class="text-yellow-300">"totalSpend"</span>: 14075.76,    <span class="text-gray-500">// Total gasto em marketing</span>
+    <span class="text-yellow-300">"totalLeads"</span>: 50,           <span class="text-gray-500">// Leads capturados</span>
+    <span class="text-yellow-300">"cpl"</span>: 281.52,              <span class="text-gray-500">// Custo por Lead</span>
+    <span class="text-yellow-300">"conversions"</span>: 10,          <span class="text-gray-500">// Leads que viraram clientes</span>
+    <span class="text-yellow-300">"revenue"</span>: 530507.00,       <span class="text-gray-500">// Receita total</span>
+    <span class="text-yellow-300">"roas"</span>: 37.7,               <span class="text-gray-500">// Return on Ad Spend</span>
+    <span class="text-yellow-300">"roi"</span>: 3668.9               <span class="text-gray-500">// Return on Investment (%)</span>
+  },
+  <span class="text-yellow-300">"funnel"</span>: [...],              <span class="text-gray-500">// Estagios do pipeline</span>
+  <span class="text-yellow-300">"leadsOverTime"</span>: [...],      <span class="text-gray-500">// Grafico area</span>
+  <span class="text-yellow-300">"spendVsRevenue"</span>: [...],     <span class="text-gray-500">// Grafico barras</span>
+  <span class="text-yellow-300">"sourceDistribution"</span>: [...], <span class="text-gray-500">// Grafico pizza</span>
+  <span class="text-yellow-300">"campaignRanking"</span>: [...]     <span class="text-gray-500">// Tabela ranking</span>
+}</pre>
+            </div>
+        </div>
+
+        @* ===== SECAO 10 — MIGRACAO DB ===== *@
+        <div id="section-10" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">10. Migracao de Banco de Dados</h2>
+            <p class="text-sm text-gray-600">EnsureCreated (demo) vs EF Core Migrations (producao).</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                    <div class="text-sm font-bold text-amber-800 mb-2">Este projeto (demo)</div>
+                    <div class="text-xs text-amber-700 font-mono">await db.Database.EnsureCreatedAsync();</div>
+                    <div class="text-xs text-amber-600 mt-1">Cria tabelas se nao existirem. Simples mas nao altera tabelas existentes.</div>
+                </div>
+                <div class="rounded-lg bg-green-50 border border-green-200 p-4">
+                    <div class="text-sm font-bold text-green-800 mb-2">Seu CRM (producao)</div>
+                    <div class="text-xs text-green-700 font-mono">dotnet ef migrations add AddXxx<br/>dotnet ef database update</div>
+                    <div class="text-xs text-green-600 mt-1">Usa EF Core Migrations. Seguro para bancos com dados reais.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Se seu CRM usa Prisma ou SQL puro</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-2">Prisma</div>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                        <pre class="text-xs text-green-400 font-mono leading-relaxed">model CampaignSpendDaily {
+  id         String   @@id
+  campaignId String
+  date       DateTime @@db.Date
+  amount     Float
+
+  @@@@unique([campaignId, date])
+}</pre>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-2">SQL Puro</div>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                        <pre class="text-xs text-green-400 font-mono leading-relaxed">CREATE TABLE "CampaignSpendDaily" (
+  "id" VARCHAR(25) PRIMARY KEY,
+  "campaignId" VARCHAR(25)
+    NOT NULL REFERENCES "Campaign"("id"),
+  "date" DATE NOT NULL,
+  "amount" DOUBLE PRECISION DEFAULT 0,
+  UNIQUE("campaignId", "date")
+);</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ===== SECAO 11 — NAMING CONVENTIONS ===== *@
+        <div id="section-11" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">11. Adaptacao de Naming Conventions</h2>
+            <p class="text-sm text-gray-600">camelCase vs PascalCase vs snake_case.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
+            <table class="w-full text-sm">
+                <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Este Projeto</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">SQL Server (padrao)</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">PostgreSQL (snake_case)</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-mono text-xs">createdAt</td><td class="px-4 py-2 font-mono text-xs">CreatedAt</td><td class="px-4 py-2 font-mono text-xs">created_at</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-mono text-xs">contactId</td><td class="px-4 py-2 font-mono text-xs">ContactId</td><td class="px-4 py-2 font-mono text-xs">contact_id</td></tr>
+                    <tr><td class="px-4 py-2 font-mono text-xs">utmSource</td><td class="px-4 py-2 font-mono text-xs">UtmSource</td><td class="px-4 py-2 font-mono text-xs">utm_source</td></tr>
+                </tbody>
+            </table>
+            <div class="p-4 bg-gray-50 border-t">
+                <p class="text-xs text-gray-600"><strong>Regra pratica:</strong> camelCase → nao mude nada. PascalCase → remova o loop de conversao. snake_case → use <code class="bg-gray-200 px-1 rounded">UseSnakeCaseNamingConvention()</code> do NuGet <code class="bg-gray-200 px-1 rounded">EFCore.NamingConventions</code>.</p>
+            </div>
+        </div>
+
+        @* ===== SECAO 12 — VARIAVEIS ===== *@
+        <div id="section-12" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">12. Configuracao e Variaveis de Ambiente</h2>
+            <p class="text-sm text-gray-600">DATABASE_URL, Z-API credentials, .NET config.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="bg-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500"># Obrigatoria</span>
+DATABASE_URL=<span class="text-yellow-300">postgresql://user:pass@host:5432/dbname</span>
+
+<span class="text-gray-500"># Opcionais (Z-API - sem elas, roda em modo simulacao)</span>
+ZAPI_INSTANCE_ID=seu_instance_id
+ZAPI_TOKEN=seu_token
+ZAPI_CLIENT_TOKEN=seu_client_token
+
+<span class="text-gray-500"># .NET padrao</span>
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://0.0.0.0:8080</pre>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p class="text-xs text-blue-800"><strong>Se seu CRM ja tem connection string propria</strong>, ignore o parsing de DATABASE_URL e use a sua diretamente.</p>
+            </div>
+        </div>
+
+        @* ===== SECAO 13 — DOCKER ===== *@
+        <div id="section-13" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">13. Docker e Deploy</h2>
+            <p class="text-sm text-gray-600">Multi-stage build, plataformas suportadas.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Dockerfile (multi-stage, otimizado 512MB RAM)</h3>
+            <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500"># Build</span>
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY src/WhatsAppCrm.Web/WhatsAppCrm.Web.csproj .
+RUN dotnet restore
+COPY src/WhatsAppCrm.Web/ .
+RUN dotnet publish -c Release -o /app /p:ReadyToRun=true
+
+<span class="text-gray-500"># Runtime</span>
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app .
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+EXPOSE 8080
+ENTRYPOINT [<span class="text-yellow-300">"dotnet"</span>, <span class="text-yellow-300">"WhatsAppCrm.Web.dll"</span>]</pre>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
+            <table class="w-full text-sm">
+                <thead><tr class="border-b border-gray-200 bg-gray-50"><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Plataforma</th><th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Como configurar</th></tr></thead>
+                <tbody>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Render</td><td class="px-4 py-2 text-gray-600">Docker build, DATABASE_URL como env var, health check /healthz</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Railway</td><td class="px-4 py-2 text-gray-600">Mesma config do Render</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Fly.io</td><td class="px-4 py-2 text-gray-600">fly launch --dockerfile Dockerfile</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">Azure App Service</td><td class="px-4 py-2 text-gray-600">Container ou publish direto</td></tr>
+                    <tr class="border-b border-gray-50"><td class="px-4 py-2 font-medium">AWS ECS/Fargate</td><td class="px-4 py-2 text-gray-600">Push image para ECR</td></tr>
+                    <tr><td class="px-4 py-2 font-medium">Heroku</td><td class="px-4 py-2 text-gray-600">Buildpack .NET ou Docker</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        @* ===== SECAO 14 — CHECKLIST ===== *@
+        <div id="section-14" class="rounded-lg bg-[#25d366]/10 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-whatsapp">14. Checklist Final de Integracao</h2>
+            <p class="text-sm text-gray-600">Verifique cada item antes de publicar.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="space-y-6">
+                @* Antes *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Antes de comecar
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Leu este guia completo</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Identificou quais modulos precisa</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Criou branch de integracao</div>
+                    </div>
+                </div>
+
+                @* Modulo 1 *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">1</span>
+                        Modulo 1 — Dados
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Adicionou campos UTM ao Contact existente</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Criou entidades novas (CampaignSpendDaily, Conversion, ContactFeedback)</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Registrou DbSets e relacionamentos no DbContext</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Gerou e aplicou migration no banco</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> <code class="bg-gray-100 px-1 rounded">dotnet build</code> compila sem erros</div>
+                    </div>
+                </div>
+
+                @* Modulo 2 *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-green-100 flex items-center justify-center text-green-600 text-xs font-bold">2</span>
+                        Modulo 2 — APIs
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Copiou/adaptou DashboardApi</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Copiou/adaptou ContactFeedbacksApi e CampaignSpendApi</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Adaptou PipelineApi (auto-conversao)</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Registrou endpoints no pipeline</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> <code class="bg-gray-100 px-1 rounded">curl /api/dashboard</code> retorna JSON valido</div>
+                    </div>
+                </div>
+
+                @* Modulo 3 *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-yellow-100 flex items-center justify-center text-yellow-600 text-xs font-bold">3</span>
+                        Modulo 3 — Servicos
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Integrou ZApiService (ou adaptou para seu provider)</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Integrou CampaignRunner (ou usou seu job scheduler)</div>
+                    </div>
+                </div>
+
+                @* Modulo 4-5 *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-bold">4</span>
+                        Modulos 4 e 5 — UI + Dashboard
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> KPI cards mostram valores corretos</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Funil de vendas renderiza estagios</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> 3 graficos funcionam (area, barras, pizza)</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Tabela de ranking de campanhas mostra ROAS</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Filtros (data, campanha, fonte) funcionam</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Coluna "Origem" nos contatos com badges UTM</div>
+                    </div>
+                </div>
+
+                @* Deploy *@
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">D</span>
+                        Deploy
+                    </h3>
+                    <div class="space-y-1 pl-6">
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Build Docker passa</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Variaveis de ambiente configuradas</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Health check /healthz responde 200</div>
+                        <div class="text-xs text-gray-600 flex items-center gap-2"><span class="w-3 h-3 rounded border border-gray-300 flex-shrink-0"></span> Seed data popula (ou removeu DatabaseSeeder)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ===== SECAO 15 — EXEMPLO PRATICO ===== *@
+        <div id="section-15" class="rounded-lg bg-blue-50 border border-blue-200 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-blue-800">15. Exemplo Pratico: Integrando so o Dashboard</h2>
+            <p class="text-sm text-blue-600">Passo a passo para integrar apenas o modulo mais comum.</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <div class="space-y-6">
+                @* Passo 1 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Crie as 3 entidades novas</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// Entities/CampaignSpendDaily.cs</span>
+public class CampaignSpendDaily
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString(<span class="text-yellow-300">"N"</span>)[..25];
+    public string CampaignId { get; set; } = <span class="text-yellow-300">""</span>;
+    public DateOnly Date { get; set; }
+    public double Amount { get; set; }
+}
+
+<span class="text-gray-500">// Entities/Conversion.cs</span>
+public class Conversion
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString(<span class="text-yellow-300">"N"</span>)[..25];
+    public string ContactId { get; set; } = <span class="text-yellow-300">""</span>;
+    public string? CampaignId { get; set; }
+    public string DealId { get; set; } = <span class="text-yellow-300">""</span>;
+    public double Value { get; set; }
+    public DateTime ConvertedAt { get; set; } = DateTime.UtcNow;
+}
+
+<span class="text-gray-500">// Entities/ContactFeedback.cs</span>
+public class ContactFeedback
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString(<span class="text-yellow-300">"N"</span>)[..25];
+    public string ContactId { get; set; } = <span class="text-yellow-300">""</span>;
+    public string Author { get; set; } = <span class="text-yellow-300">""</span>;
+    public string Text { get; set; } = <span class="text-yellow-300">""</span>;
+    public string Type { get; set; } = <span class="text-yellow-300">"note"</span>;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 2 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">2</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Adicione campos UTM ao Contact</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed">public string? UtmSource { get; set; }
+public string? UtmMedium { get; set; }
+public string? UtmCampaign { get; set; }
+public string? LeadCampaignId { get; set; }</pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 3 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">3</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Registre no DbContext</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed">public DbSet&lt;CampaignSpendDaily&gt; CampaignSpendDailies =&gt; Set&lt;CampaignSpendDaily&gt;();
+public DbSet&lt;Conversion&gt; Conversions =&gt; Set&lt;Conversion&gt;();
+public DbSet&lt;ContactFeedback&gt; ContactFeedbacks =&gt; Set&lt;ContactFeedback&gt;();</pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 4 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">4</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Gere a migration</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed">dotnet ef migrations add AddDashboardEntities
+dotnet ef database update</pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 5-6 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">5</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Copie DashboardApi.cs e registre</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed"><span class="text-gray-500">// No Program.cs:</span>
+app.MapDashboardApi();</pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 7 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">6</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Teste</h3>
+                        <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+                            <pre class="text-xs text-green-400 font-mono leading-relaxed">dotnet run
+<span class="text-gray-500"># Em outro terminal:</span>
+curl http://localhost:5000/api/dashboard
+<span class="text-gray-500"># Deve retornar JSON com kpi, funnel, leadsOverTime...</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+                @* Passo 8 *@
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">7</div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2">Copie a UI</h3>
+                        <p class="text-sm text-gray-600">
+                            Copie <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">DashboardPage.razor</code> + <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">charts.js</code> + adicione o CDN do Chart.js no head. Pronto!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ===== SECAO 16 — TROUBLESHOOTING ===== *@
+        <div id="section-16" class="rounded-lg bg-red-50 border border-red-200 p-4 mb-6 mt-12">
+            <h2 class="text-lg font-bold text-red-800">16. Troubleshooting</h2>
+            <p class="text-sm text-red-600">Erros comuns e como resolver.</p>
+        </div>
+
+        <div class="space-y-4 mb-8">
+            @* Erro 1 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xs font-bold">!</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-red-700 font-mono">column "utmSource" does not exist</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> Banco foi criado antes de adicionar os campos UTM.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Rode a migration ou <code class="bg-gray-100 px-1 rounded">ALTER TABLE "Contact" ADD COLUMN "utmSource" VARCHAR(100);</code></p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 2 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xs font-bold">!</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-red-700 font-mono">Cannot write DateTime with Kind=Unspecified</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> Npgsql exige DateTimeKind.Utc para timestamp with time zone.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> <code class="bg-gray-100 px-1 rounded">DateTime.SpecifyKind(valor, DateTimeKind.Utc)</code> antes de queries.</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 3 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xs font-bold">!</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-red-700 font-mono">LINQ expression could not be translated</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> EF Core nao traduz .ToString() ou .Date dentro de GroupBy para SQL.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Faca GroupBy no banco e formate em memoria (ToList primeiro, depois Select).</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 4 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xs font-bold">!</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-red-700 font-mono">Circular reference detected</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> Serializacao JSON com referencias circulares entre entidades.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Adicione <code class="bg-gray-100 px-1 rounded">ReferenceHandler.IgnoreCycles</code> no <code class="bg-gray-100 px-1 rounded">ConfigureHttpJsonOptions</code>.</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 5 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs font-bold">?</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-700">Dashboard vazio (sem dados)</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> Sem seed data ou filtro de datas nao encontra registros.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Verifique se DatabaseSeeder rodou. Teste: <code class="bg-gray-100 px-1 rounded">GET /api/dashboard?from=2020-01-01&amp;to=2030-01-01</code></p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 6 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs font-bold">?</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-700">Charts nao renderizam</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> Chart.js CDN nao carregou ou charts.js nao foi incluido.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Verifique os scripts no App.razor ou _Layout.cshtml.</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Erro 7 *@
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs font-bold">?</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-700">Kanban drag-drop nao funciona</h3>
+                        <p class="text-xs text-gray-500 mt-1"><strong>Causa:</strong> SortableJS nao carregou ou pipeline-interop.js nao foi incluido.</p>
+                        <p class="text-xs text-gray-600 mt-1"><strong>Fix:</strong> Mesmo padrao — verifique os scripts CDN.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ===== FOOTER ===== *@
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Links uteis</h3>
+            <div class="grid md:grid-cols-2 gap-2">
+                <a href="https://learn.microsoft.com/ef/core/" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    EF Core Documentation
+                </a>
+                <a href="https://learn.microsoft.com/aspnet/core/blazor/" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Blazor Documentation
+                </a>
+                <a href="https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Minimal APIs
+                </a>
+                <a href="https://developer.z-api.io/" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Z-API Documentation
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-gray-400 pb-8">
+            <a href="https://github.com/MarceloSenai/whatsapp-crm-zapi" target="_blank" class="hover:text-gray-600">
+                GitHub: MarceloSenai/whatsapp-crm-zapi
+            </a>
+        </div>
+    </div>
+</div>
