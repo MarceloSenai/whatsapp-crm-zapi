@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WhatsAppCrm.Web.Data;
+using WhatsAppCrm.Web.Entities;
 
 namespace WhatsAppCrm.Web.Api;
 
@@ -58,6 +59,29 @@ public static class PipelineApi
             deal.StageId = request.StageId;
             deal.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
+
+            // Check if moved to "Fechado/Ganho" (order 5) — auto-create Conversion
+            var newStage = await db.Stages.FindAsync(request.StageId);
+            if (newStage is { Order: 5 })
+            {
+                var existingConversion = await db.Conversions.AnyAsync(c => c.DealId == deal.Id);
+                if (!existingConversion)
+                {
+                    var contact = await db.Contacts
+                        .Where(c => c.Id == deal.ContactId)
+                        .Select(c => new { c.LeadCampaignId })
+                        .FirstOrDefaultAsync();
+
+                    db.Conversions.Add(new Conversion
+                    {
+                        ContactId = deal.ContactId,
+                        CampaignId = contact?.LeadCampaignId,
+                        DealId = deal.Id,
+                        Value = deal.Value
+                    });
+                    await db.SaveChangesAsync();
+                }
+            }
 
             return Results.Ok(new { ok = true });
         });

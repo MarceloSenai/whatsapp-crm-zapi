@@ -42,6 +42,7 @@ else
                         <th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Nome</th>
                         <th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Telefone</th>
                         <th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Tags</th>
+                        <th class="text-left text-xs font-medium text-gray-500 px-4 py-3">Origem</th>
                         <th class="text-center text-xs font-medium text-gray-500 px-4 py-3">Conversas</th>
                         <th class="text-center text-xs font-medium text-gray-500 px-4 py-3">Deals</th>
                         <th class="text-center text-xs font-medium text-gray-500 px-4 py-3">Status</th>
@@ -81,6 +82,16 @@ else
                                         }
                                     }
                                 </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                @if (!string.IsNullOrEmpty(c.UtmSource))
+                                {
+                                    <span class="@($"text-[10px] px-2 py-0.5 rounded-full font-medium {SourceColor(c.UtmSource)}")">@SourceLabel(c.UtmSource)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-[10px] text-gray-400">Direto</span>
+                                }
                             </td>
                             <td class="px-4 py-3 text-center text-sm text-gray-600">@c.ConversationCount</td>
                             <td class="px-4 py-3 text-center text-sm text-gray-600">@c.DealCount</td>
@@ -141,13 +152,14 @@ else
                     Email = item.TryGetProperty("email", out var email) && email.ValueKind != JsonValueKind.Null
                         ? email.GetString() : null,
                     Tags = item.GetProperty("tags").GetString() ?? "[]",
-                    OptedOut = item.GetProperty("optedOut").GetBoolean()
+                    OptedOut = item.GetProperty("optedOut").GetBoolean(),
+                    UtmSource = item.TryGetProperty("utmSource", out var utm) && utm.ValueKind != JsonValueKind.Null
+                        ? utm.GetString() : null
                 };
-                if (item.TryGetProperty("_count", out var count))
-                {
-                    dto.ConversationCount = count.TryGetProperty("conversations", out var convs) ? convs.GetInt32() : 0;
-                    dto.DealCount = count.TryGetProperty("deals", out var deals) ? deals.GetInt32() : 0;
-                }
+                if (item.TryGetProperty("conversationCount", out var convs))
+                    dto.ConversationCount = convs.GetInt32();
+                if (item.TryGetProperty("dealCount", out var deals))
+                    dto.DealCount = deals.GetInt32();
                 contacts.Add(dto);
             }
         }
@@ -172,6 +184,29 @@ else
         return parts.Length > 0 ? parts[0][0].ToString().ToUpperInvariant() : "?";
     }
 
+    private static string SourceLabel(string source) => source.ToLowerInvariant() switch
+    {
+        "google_ads" => "Google Ads",
+        "meta_ads" => "Meta Ads",
+        "linkedin_ads" => "LinkedIn",
+        "whatsapp" => "WhatsApp",
+        "organic" => "Organico",
+        "referral" => "Referral",
+        "email" => "E-mail",
+        _ => source
+    };
+
+    private static string SourceColor(string source) => source.ToLowerInvariant() switch
+    {
+        "google_ads" => "bg-blue-100 text-blue-800",
+        "meta_ads" => "bg-purple-100 text-purple-800",
+        "linkedin_ads" => "bg-sky-100 text-sky-800",
+        "whatsapp" => "bg-green-100 text-green-800",
+        "referral" => "bg-amber-100 text-amber-800",
+        "organic" => "bg-emerald-100 text-emerald-800",
+        _ => "bg-gray-100 text-gray-700"
+    };
+
     private static string TagColor(string tag) => tag.ToLowerInvariant() switch
     {
         "vip" => "bg-amber-100 text-amber-800",
@@ -194,6 +229,7 @@ else
         public string? Email { get; set; }
         public string Tags { get; set; } = "[]";
         public bool OptedOut { get; set; }
+        public string? UtmSource { get; set; }
         public int ConversationCount { get; set; }
         public int DealCount { get; set; }
     }

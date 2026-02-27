@@ -15,6 +15,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignMessage> CampaignMessages => Set<CampaignMessage>();
     public DbSet<Template> Templates => Set<Template>();
+    public DbSet<ContactFeedback> ContactFeedbacks => Set<ContactFeedback>();
+    public DbSet<CampaignSpendDaily> CampaignSpendDailies => Set<CampaignSpendDaily>();
+    public DbSet<Conversion> Conversions => Set<Conversion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,6 +25,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasKey(c => c.Id);
             e.HasIndex(c => c.Phone).IsUnique();
+            e.HasOne(c => c.LeadCampaign)
+                .WithMany(camp => camp.LeadsFromThis)
+                .HasForeignKey(c => c.LeadCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Conversation>(e =>
@@ -89,6 +96,42 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Template>(e =>
         {
             e.HasKey(t => t.Id);
+        });
+
+        modelBuilder.Entity<ContactFeedback>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.HasOne(f => f.Contact)
+                .WithMany(c => c.Feedbacks)
+                .HasForeignKey(f => f.ContactId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CampaignSpendDaily>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.HasIndex(s => new { s.CampaignId, s.Date }).IsUnique();
+            e.HasOne(s => s.Campaign)
+                .WithMany(c => c.SpendDaily)
+                .HasForeignKey(s => s.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Conversion>(e =>
+        {
+            e.HasKey(cv => cv.Id);
+            e.HasOne(cv => cv.Contact)
+                .WithMany(c => c.Conversions)
+                .HasForeignKey(cv => cv.ContactId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(cv => cv.Campaign)
+                .WithMany(camp => camp.Conversions)
+                .HasForeignKey(cv => cv.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(cv => cv.Deal)
+                .WithMany(d => d.Conversions)
+                .HasForeignKey(cv => cv.DealId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ============================================================

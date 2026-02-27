@@ -11,6 +11,15 @@ public static class ResetApi
             try
             {
                 // Delete all in FK order
+                db.Conversions.RemoveRange(db.Conversions);
+                await db.SaveChangesAsync();
+
+                db.CampaignSpendDailies.RemoveRange(db.CampaignSpendDailies);
+                await db.SaveChangesAsync();
+
+                db.ContactFeedbacks.RemoveRange(db.ContactFeedbacks);
+                await db.SaveChangesAsync();
+
                 db.CampaignMessages.RemoveRange(db.CampaignMessages);
                 await db.SaveChangesAsync();
 

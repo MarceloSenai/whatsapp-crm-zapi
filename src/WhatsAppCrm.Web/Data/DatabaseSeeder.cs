@@ -100,11 +100,33 @@ public static class DatabaseSeeder
         ("Suporte Ticket", "utility", "Seu chamado #{{ticket}} foi registrado no suporte Obraxs. Prazo de resposta: {{prazo}}h. Acompanhe em {{link}}.")
     ];
 
+    private static readonly string[] FeedbackTexts =
+    [
+        "Cliente demonstrou alto interesse no módulo de medições",
+        "Agendada demo para a equipe de engenharia",
+        "Follow-up realizado, aguardando retorno sobre proposta",
+        "Reunião produtiva, decisão prevista para próxima semana",
+        "Solicitou proposta formal com valores detalhados",
+        "Interesse em integração com sistema legado",
+        "Realizou demo e ficou impressionado com app mobile",
+        "Está comparando com concorrente, enviar diferencial",
+        "Pediu referências de clientes no mesmo segmento",
+        "CEO aprovou POC de 30 dias",
+        "Equipe técnica validou requisitos",
+        "Negociação de desconto para pagamento anual",
+        "Treinamento da equipe agendado",
+        "Contrato em revisão pelo jurídico",
+        "Go-live previsto para próximo mês"
+    ];
+
     private static readonly Random Rng = new();
 
     public static async Task SeedAsync(AppDbContext db)
     {
-        // Delete all in FK order
+        // Delete all in FK order (new entities first)
+        db.Conversions.RemoveRange(db.Conversions);
+        db.CampaignSpendDailies.RemoveRange(db.CampaignSpendDailies);
+        db.ContactFeedbacks.RemoveRange(db.ContactFeedbacks);
         db.CampaignMessages.RemoveRange(db.CampaignMessages);
         db.Campaigns.RemoveRange(db.Campaigns);
         db.Templates.RemoveRange(db.Templates);
@@ -123,10 +145,122 @@ public static class DatabaseSeeder
         }
         await db.SaveChangesAsync();
 
-        // Contacts
+        // === Campaigns FIRST (needed for LeadCampaignId on contacts) ===
+        var utmSources = new[] { "google_ads", "meta_ads", "linkedin_ads", "whatsapp", "referral", "organic" };
+
+        // 3 existing WhatsApp campaigns
+        var completedCampaign = new Campaign
+        {
+            Name = "Lançamento Módulo Medições 2.0",
+            TemplateText = "Olá {{nome}}! O novo módulo de Medições de Obra do Obraxs está no ar. Medição digital com aprovação online. Agende uma demo gratuita!",
+            Status = "completed",
+            Platform = "whatsapp",
+            UtmSource = "whatsapp",
+            UtmMedium = "campaign",
+            UtmCampaign = "medicoes_2_0",
+            RateLimit = 20,
+            StartedAt = RandomDate(30),
+            CompletedAt = RandomDate(25)
+        };
+        db.Campaigns.Add(completedCampaign);
+
+        var runningCampaign = new Campaign
+        {
+            Name = "Webinar: Gestão Digital de Obras",
+            TemplateText = "{{nome}}, participe do webinar \"Elimine planilhas da sua construtora com o Obraxs\" no dia 15/03! Vagas limitadas. Responda SIM para inscrição.",
+            Status = "running",
+            Platform = "whatsapp",
+            UtmSource = "whatsapp",
+            UtmMedium = "campaign",
+            UtmCampaign = "webinar_gestao_digital",
+            RateLimit = 10,
+            StartedAt = DateTime.UtcNow
+        };
+        db.Campaigns.Add(runningCampaign);
+
+        var draftCampaign = new Campaign
+        {
+            Name = "Follow-up Leads Construção",
+            TemplateText = "Oi {{nome}}, tudo bem? Você conheceu o Obraxs recentemente. Temos condições especiais para implantação este mês. Quer saber mais?",
+            Status = "draft",
+            Platform = "whatsapp",
+            UtmSource = "whatsapp",
+            UtmMedium = "campaign",
+            UtmCampaign = "followup_leads",
+            RateLimit = 30,
+            AudienceFilter = JsonSerializer.Serialize(new { tags = new[] { "lead", "prospecto", "construtora" } })
+        };
+        db.Campaigns.Add(draftCampaign);
+
+        // 3 NEW paid campaigns
+        var googleAdsCampaign = new Campaign
+        {
+            Name = "Google Ads - Obraxs ERP Construção",
+            TemplateText = "",
+            Status = "completed",
+            Platform = "google_ads",
+            UtmSource = "google_ads",
+            UtmMedium = "cpc",
+            UtmCampaign = "erp_construcao_2026",
+            ExternalId = "GA-12345678",
+            StartedAt = RandomDate(60),
+            CompletedAt = RandomDate(5)
+        };
+        db.Campaigns.Add(googleAdsCampaign);
+
+        var metaAdsCampaign = new Campaign
+        {
+            Name = "Meta Ads - Gestão de Obras",
+            TemplateText = "",
+            Status = "completed",
+            Platform = "meta_ads",
+            UtmSource = "meta_ads",
+            UtmMedium = "paid_social",
+            UtmCampaign = "gestao_obras_q1",
+            ExternalId = "23854123456789",
+            StartedAt = RandomDate(45),
+            CompletedAt = RandomDate(3)
+        };
+        db.Campaigns.Add(metaAdsCampaign);
+
+        var linkedInCampaign = new Campaign
+        {
+            Name = "LinkedIn Ads - ERP Engenharia",
+            TemplateText = "",
+            Status = "running",
+            Platform = "linkedin_ads",
+            UtmSource = "linkedin_ads",
+            UtmMedium = "sponsored",
+            UtmCampaign = "erp_engenharia_b2b",
+            ExternalId = "LI-98765432",
+            StartedAt = RandomDate(30)
+        };
+        db.Campaigns.Add(linkedInCampaign);
+
+        await db.SaveChangesAsync();
+
+        var paidCampaigns = new[] { googleAdsCampaign, metaAdsCampaign, linkedInCampaign };
+        var allCampaigns = new[] { completedCampaign, runningCampaign, draftCampaign, googleAdsCampaign, metaAdsCampaign, linkedInCampaign };
+
+        // === Contacts (60% with UTM) ===
         var contacts = new List<Contact>();
         for (var i = 0; i < 50; i++)
         {
+            var hasUtm = i < 30; // 60% with UTM source
+            var utmSource = hasUtm ? utmSources[i % utmSources.Length] : null;
+            Campaign? leadCampaign = null;
+
+            if (hasUtm && utmSource is "google_ads" or "meta_ads" or "linkedin_ads")
+            {
+                leadCampaign = utmSource switch
+                {
+                    "google_ads" => googleAdsCampaign,
+                    "meta_ads" => metaAdsCampaign,
+                    "linkedin_ads" => linkedInCampaign,
+                    _ => null
+                };
+            }
+
             var contact = new Contact
             {
                 Name = Names[i],
@@ -134,7 +268,11 @@ public static class DatabaseSeeder
                 Email = $"{RemoveDiacritics(Names[i]).ToLowerInvariant().Replace(' ', '.')}@email.com",
                 Tags = RandomTags(),
                 OptedOut = i >= 47,
-                OptOutAt = i >= 47 ? RandomDate(10) : null
+                OptOutAt = i >= 47 ? RandomDate(10) : null,
+                UtmSource = utmSource,
+                UtmMedium = hasUtm ? (utmSource is "google_ads" ? "cpc" : utmSource is "meta_ads" ? "paid_social" : utmSource is "linkedin_ads" ? "sponsored" : "campaign") : null,
+                UtmCampaign = hasUtm ? (leadCampaign?.UtmCampaign ?? "organic_inbound") : null,
+                LeadCampaignId = leadCampaign?.Id
             };
             db.Contacts.Add(contact);
             contacts.Add(contact);
@@ -179,6 +317,34 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync();
         }
 
+        // Campaign Messages for WhatsApp campaigns
+        var campaignStatuses = new[] { "sent", "delivered", "read", "replied" };
+        for (var i = 0; i < 15; i++)
+        {
+            db.CampaignMessages.Add(new CampaignMessage
+            {
+                CampaignId = completedCampaign.Id,
+                ContactId = contacts[i].Id,
+                Status = campaignStatuses[Rng.Next(campaignStatuses.Length)],
+                SentAt = RandomDate(28),
+                DeliveredAt = RandomDate(28),
+                ReadAt = Rng.NextDouble() > 0.3 ? RandomDate(27) : null,
+                RepliedAt = Rng.NextDouble() > 0.7 ? RandomDate(26) : null
+            });
+        }
+        for (var i = 15; i < 35; i++)
+        {
+            db.CampaignMessages.Add(new CampaignMessage
+            {
+                CampaignId = runningCampaign.Id,
+                ContactId = contacts[i % 47].Id,
+                Status = i < 25 ? "delivered" : "pending",
+                SentAt = i < 25 ? DateTime.UtcNow : null,
+                DeliveredAt = i < 22 ? DateTime.UtcNow : null
+            });
+        }
+        await db.SaveChangesAsync();
+
         // Pipeline + Stages
         var pipeline = new Pipeline { Name = "Pipeline Comercial Obraxs" };
         db.Pipelines.Add(pipeline);
@@ -203,81 +369,85 @@ public static class DatabaseSeeder
         }
         await db.SaveChangesAsync();
 
-        // Deals
+        // Deals — distribute across stages, some in "Fechado/Ganho"
+        var deals = new List<Deal>();
         for (var i = 0; i < 30; i++)
         {
-            db.Deals.Add(new Deal
+            var stageIdx = i < 8 ? 5 : Rng.Next(6); // First 8 deals are won
+            var deal = new Deal
             {
                 Title = DealTitles[i],
                 ContactId = contacts[i % 30].Id,
-                StageId = stages[Rng.Next(6)].Id,
+                StageId = stages[stageIdx].Id,
                 Value = Rng.Next(10000, 90000),
                 Notes = i % 3 == 0 ? "Empresa demonstrou alto interesse nos módulos de medição e contratos" : null
+            };
+            db.Deals.Add(deal);
+            deals.Add(deal);
+        }
+        await db.SaveChangesAsync();
+
+        // === CampaignSpendDaily (~80 records, 30 days × 3 paid campaigns) ===
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        foreach (var campaign in paidCampaigns)
+        {
+            var baseDailySpend = campaign.Platform switch
+            {
+                "google_ads" => 150.0,
+                "meta_ads" => 120.0,
+                "linkedin_ads" => 200.0,
+                _ => 100.0
+            };
+
+            for (var d = 0; d < 30; d++)
+            {
+                var date = today.AddDays(-29 + d);
+                var variation = 0.7 + Rng.NextDouble() * 0.6; // 70%-130% variation
+                db.CampaignSpendDailies.Add(new CampaignSpendDaily
+                {
+                    CampaignId = campaign.Id,
+                    Date = date,
+                    Amount = Math.Round(baseDailySpend * variation, 2)
+                });
+            }
+        }
+        await db.SaveChangesAsync();
+
+        // === Conversions — for won deals (stage "Fechado/Ganho", order 5) ===
+        var wonStage = stages.First(s => s.Order == 5);
+        var wonDeals = deals.Where(d => d.StageId == wonStage.Id).ToList();
+        foreach (var deal in wonDeals)
+        {
+            var contact = contacts.First(c => c.Id == deal.ContactId);
+            db.Conversions.Add(new Conversion
+            {
+                ContactId = contact.Id,
+                CampaignId = contact.LeadCampaignId, // link to campaign if UTM-attributed
+                DealId = deal.Id,
+                Value = deal.Value,
+                ConvertedAt = RandomDate(20)
             });
         }
         await db.SaveChangesAsync();
 
-        // Campaigns
-        var completedCampaign = new Campaign
-        {
-            Name = "Lançamento Módulo Medições 2.0",
-            TemplateText = "Olá {{nome}}! O novo módulo de Medições de Obra do Obraxs está no ar. Medição digital com aprovação online. Agende uma demo gratuita!",
-            Status = "completed",
-            RateLimit = 20,
-            StartedAt = RandomDate(30),
-            CompletedAt = RandomDate(25)
-        };
-        db.Campaigns.Add(completedCampaign);
-        await db.SaveChangesAsync();
-
-        var campaignStatuses = new[] { "sent", "delivered", "read", "replied" };
+        // === ContactFeedbacks (~30 for first 15 contacts) ===
+        var feedbackAuthors = new[] { "Carlos (Vendas)", "Marina (CS)", "Roberto (Gerente)", "Ana (SDR)" };
+        var feedbackTypes = new[] { "note", "call", "meeting", "task" };
         for (var i = 0; i < 15; i++)
         {
-            db.CampaignMessages.Add(new CampaignMessage
+            var count = Rng.Next(1, 4); // 1-3 feedbacks per contact
+            for (var f = 0; f < count; f++)
             {
-                CampaignId = completedCampaign.Id,
-                ContactId = contacts[i].Id,
-                Status = campaignStatuses[Rng.Next(campaignStatuses.Length)],
-                SentAt = RandomDate(28),
-                DeliveredAt = RandomDate(28),
-                ReadAt = Rng.NextDouble() > 0.3 ? RandomDate(27) : null,
-                RepliedAt = Rng.NextDouble() > 0.7 ? RandomDate(26) : null
-            });
+                db.ContactFeedbacks.Add(new ContactFeedback
+                {
+                    ContactId = contacts[i].Id,
+                    Author = feedbackAuthors[Rng.Next(feedbackAuthors.Length)],
+                    Text = FeedbackTexts[Rng.Next(FeedbackTexts.Length)],
+                    Type = feedbackTypes[Rng.Next(feedbackTypes.Length)],
+                    CreatedAt = RandomDate(30)
+                });
+            }
         }
-        await db.SaveChangesAsync();
-
-        var runningCampaign = new Campaign
-        {
-            Name = "Webinar: Gestão Digital de Obras",
-            TemplateText = "{{nome}}, participe do webinar \"Elimine planilhas da sua construtora com o Obraxs\" no dia 15/03! Vagas limitadas. Responda SIM para inscrição.",
-            Status = "running",
-            RateLimit = 10,
-            StartedAt = DateTime.UtcNow
-        };
-        db.Campaigns.Add(runningCampaign);
-        await db.SaveChangesAsync();
-
-        for (var i = 15; i < 35; i++)
-        {
-            db.CampaignMessages.Add(new CampaignMessage
-            {
-                CampaignId = runningCampaign.Id,
-                ContactId = contacts[i % 47].Id,
-                Status = i < 25 ? "delivered" : "pending",
-                SentAt = i < 25 ? DateTime.UtcNow : null,
-                DeliveredAt = i < 22 ? DateTime.UtcNow : null
-            });
-        }
-
-        db.Campaigns.Add(new Campaign
-        {
-            Name = "Follow-up Leads Construção",
-            TemplateText = "Oi {{nome}}, tudo bem? Você conheceu o Obraxs recentemente. Temos condições especiais para implantação este mês. Quer saber mais?",
-            Status = "draft",
-            RateLimit = 30,
-            AudienceFilter = JsonSerializer.Serialize(new { tags = new[] { "lead", "prospecto", "construtora" } })
-        });
-
         await db.SaveChangesAsync();
     }
 

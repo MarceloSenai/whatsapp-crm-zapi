@@ -6,6 +6,11 @@ public class Campaign
     public string Name { get; set; } = string.Empty;
     public string TemplateText { get; set; } = string.Empty;
     public string Status { get; set; } = "draft";
+    public string Platform { get; set; } = "whatsapp";
+    public string? UtmSource { get; set; }
+    public string? UtmMedium { get; set; }
+    public string? UtmCampaign { get; set; }
+    public string? ExternalId { get; set; }
     public string? AudienceFilter { get; set; }
     public int RateLimit { get; set; } = 30;
     public DateTime? ScheduledAt { get; set; }
@@ -14,4 +19,7 @@ public class Campaign
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<CampaignMessage> Messages { get; set; } = [];
+    public ICollection<CampaignSpendDaily> SpendDaily { get; set; } = [];
+    public ICollection<Conversion> Conversions { get; set; } = [];
+    public ICollection<Contact> LeadsFromThis { get; set; } = [];
 }

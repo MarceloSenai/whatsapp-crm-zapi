@@ -136,6 +136,9 @@ app.MapMessagesApi();
 app.MapPipelineApi();
 app.MapCampaignsApi();
 app.MapContactsApi();
+app.MapContactFeedbacksApi();
+app.MapCampaignSpendApi();
+app.MapDashboardApi();
 app.MapTemplatesApi();
 app.MapResetApi();
 app.MapZApiWebhookApi();  // Z-API webhooks + status

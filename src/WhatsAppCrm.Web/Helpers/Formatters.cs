@@ -65,6 +65,18 @@ public static partial class Formatters
         return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
+    public static string FormatPercent(double value)
+    {
+        return $"{value:F1}%";
+    }
+
+    public static string FormatCompact(double value)
+    {
+        if (value >= 1_000_000) return $"{value / 1_000_000:F1}M";
+        if (value >= 1_000) return $"{value / 1_000:F1}K";
+        return value.ToString("F0");
+    }
+
     [GeneratedRegex(@"\D")]
     private static partial Regex DigitsOnly();
 }
